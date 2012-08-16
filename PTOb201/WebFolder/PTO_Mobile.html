@@ -1,0 +1,185 @@
+﻿<!DOCTYPE html><html>
+    <head>
+        <title>PTO_Mobile</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <meta name="generator" content="Wakanda GUIDesigner"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+    	<meta name="wakanda-version" content="2.0 build 2.115958"/>
+		<meta name="wakanda-build" content="2.115958"/>
+		<meta name="WAF.config.loadCSS" id="waf-palette" content="/walib/WAF/widget/palette/css/widget-palette-default.css"/>
+		<meta name="WAF.config.loadCSS" id="waf-interface-css" content="styles/PTO_Mobile.css"/>
+		<meta name="WAF.config.loadCSS" id="waf-project-css" content="/application.css"/>
+</head>
+    <body id="waf-body" data-viewport-width="device-width" data-viewport-minimum-scale="1.0" data-viewport-maximum-scale="1.0" data-viewport-initial-scale="1.0" data-type="document" data-theme="default" data-platform="desktop" data-lib="WAF" data-apple-meta-tags-status-bar="default" class="default" style="visibility:hidden;">
+            <!-- Sign_In -->
+        <div id="page1" data-role="page">
+            <div data-theme="a" data-role="header">
+                <h3>
+                    PTO_Mobile
+                </h3>
+            </div>
+            <div style="padding: 15px" data-role="content">
+                <h2>
+                    Paid Time Off
+                </h2>
+                <div data-role="fieldcontain">
+                    <fieldset data-role="controlgroup" data-mini="true">
+                        <label for="textinput1">
+                            User Name:
+                        </label>
+                        <input value="" type="text" placeholder="User Name" name="" id="textinput1"/>
+                    </fieldset>
+                </div>
+                <div data-role="fieldcontain">
+                    <fieldset data-role="controlgroup" data-mini="true">
+                        <label for="textinput2">
+                            Password:
+                        </label>
+                        <input value="" type="text" placeholder="Password" name="" id="textinput2"/>
+                    </fieldset>
+                </div>
+                <a onclick="button_clicked()" href="#page6" data-transition="fade" data-role="button">
+                    Log In
+                </a>
+                <div style=" text-align:center">
+                    <img style="width: 30%; height: 30%" src="http://assets.codiqa.com/ps/30080/b22cfa549dd5afe8wakandaLogoIcon.png"/>
+                </div>
+            </div>
+        </div>
+        <!-- PTO_Request -->
+        <div id="page3" data-role="page">
+            <div data-theme="a" data-role="header">
+                <h3>
+                    PTO Request
+                </h3>
+                <a href="#page1" data-transition="fade" data-role="button" data-iconpos="notext" data-icon="home" class="ui-btn-left">
+                </a>
+				<a href="#page6" data-transition="fade" data-theme="b" data-role="button" class="ui-btn-right">
+					Done
+				</a>
+            </div>
+            <div style="padding: 15px" data-role="content">
+                <div data-role="fieldcontain">
+                    <fieldset data-role="controlgroup" data-mini="true">
+                        <label for="textinput3">
+                            Request Start Date
+                        </label>
+                        <input value="" type="date" placeholder="2012/08/14" name="" id="textinput3"/>
+                    </fieldset>
+                </div>
+                <div data-role="fieldcontain">
+                    <fieldset data-role="controlgroup" data-mini="true">
+                        <label for="textinput7">
+                            Request End Date
+                        </label>
+                        <input value="" type="text" placeholder="2012/08/14" name="" id="textinput7"/>
+                    </fieldset>
+                </div>
+                <div data-role="fieldcontain">
+                    <fieldset data-type="horizontal" data-role="controlgroup" data-mini="true">
+                        <legend>
+                            Request Type
+                        </legend>
+                        <input value="Floating Holiday" type="radio" name="radiobuttons1" id="radio1"/>
+                        <label for="radio1">
+                            Floating Holiday
+                        </label>
+                        <input value="PTO" type="radio" name="radiobuttons1" id="radio2"/>
+                        <label for="radio2">
+                            PTO
+                        </label>
+                    </fieldset>
+                </div>
+                <div data-role="fieldcontain">
+                    <fieldset data-role="controlgroup" data-mini="true">
+                        <label for="textinput9">
+                            Note:
+                        </label>
+                        <input value="" type="text" placeholder="" name="" id="textinput9"/>
+                    </fieldset>
+                </div>
+            </div>
+            <div data-theme="a" data-role="tabbar" data-iconpos="top">
+        <ul>
+            <li>
+                <a href="#page6" data-theme="" data-icon="star">
+                    PTOs
+                </a>
+            </li>
+            <li>
+                <a href="#page3" data-theme="" data-icon="plus">
+                    New PTO
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+        <!-- PTO_Status -->
+        <div id="page6" data-role="page">
+            <div data-theme="a" data-role="header">
+                <h3>
+                    PTO Status
+                </h3>
+                <a href="#page1" data-transition="fade" data-role="button" data-iconpos="notext" data-icon="home" class="ui-btn-left">
+                </a>
+            </div>
+            <div style="padding: 15px" data-role="content">
+                <div data-theme="" data-role="collapsible-set" data-content-theme="">
+                    <div data-theme="b" data-role="collapsible" data-collapsed="true">
+                        <h3>
+                            08/15- 08/20 Approved
+                        </h3>
+						   <p>Floating Days: 3, PTO hours: 8</p>
+						   <p>Return to work: 08/20/2012 </p>
+						   <p>Note: PTO Note.</p>
+                    </div>
+                    <div data-role="collapsible" data-collapsed="true">
+                        <h3 style="background-color:red;">
+                            09/01- 09/01 Pending
+                        </h3>
+						   <p>PTO hours: 4</p>
+						   <p>Return to work: 09/01/2012 </p>
+						   <p>Note: PTO Note.</p>
+                    </div>
+                    <div data-role="collapsible" data-collapsed="false">
+                        <h3>
+                            09/20- 09/27 Pending
+                        </h3>
+						   <p>PTO hours: 48</p>
+						   <p>Return to work: 09/28/2012 </p>
+						   <p>Note: PTO Note.</p>
+                    </div>
+                    <div data-theme="b" data-role="collapsible" data-collapsed="false">
+                        <h3>
+                            09/30- 09/30 Approved
+                        </h3>
+						   <p>PTO hours: 7</p>
+						   <p>Return to work: 10/01/2012 </p>
+						   <p>Note: PTO Note.</p>
+                    </div>
+                </div>
+            </div>
+            <div data-theme="a" data-role="tabbar" data-iconpos="top">
+        <ul>
+            <li>
+                <a href="#page6" data-theme="" data-icon="star">
+                    PTOs
+                </a>
+            </li>
+            <li>
+                <a href="#page3" data-theme="" data-icon="plus">
+                    New PTO
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+        <script>
+              function button_clicked(){
+				alert("Button Clicked!");
+			}
+        </script>
+		<script type="text/javascript" src="/waLib/WAF/Loader.js"></script>
+</body>
+
+</html>
