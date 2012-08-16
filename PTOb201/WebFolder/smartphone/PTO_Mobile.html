@@ -30,9 +30,18 @@
 		
 		
 		
+		
+		
+
+
+
+
+<meta name="WAF.config.modules" content="smartphone"/>
+		
+		
+		
 		<meta name="WAF.config.loadJS" content="/scripts/jquery.mobile-1.1.1.min[1].js"/>
 		<meta name="WAF.config.loadJS" content="/scripts/my.js"/>
-<meta name="WAF.config.modules" content="smartphone"/>
 </head>
     <body id="waf-body" data-workspace-width="320" data-workspace-orientation="portrait" data-workspace-height="480" data-workspace-device="Apple iPhone" data-viewport-width="device-width" data-viewport-minimum-scale="1.0" data-viewport-maximum-scale="1.0" data-viewport-initial-scale="1.0" data-type="document" data-theme="cupertino" data-platform="smartphone" data-lib="WAF" data-apple-meta-tags-status-bar="default" class="cupertino" style="visibility:hidden;">
         <!-- Sign_In -->
@@ -62,9 +71,10 @@
                         <input value="" type="text" placeholder="Password" name="" id="textinput2"/>
                     </fieldset>
                 </div>
-                <a onclick="button_clicked()" href="#page6" data-transition="fade" data-role="button">
+                <a onclick="button_clicked()" id="signInButton" href="#page6" data-transition="fade" data-role="button">
                     Log In
                 </a>
+				<div style="color:red;text-align:center" id="log"></div>
                 <div style=" text-align:center">
                     <img style="width: 30%; height: 30%" src="http://assets.codiqa.com/ps/30080/b22cfa549dd5afe8wakandaLogoIcon.png"/>
                 </div>
@@ -199,8 +209,19 @@
     </div>
 </div>
 <script>
+
               function button_clicked(){
-				alert("Button Clicked!");
+				if (WAF.directory.loginByPassword($("#textinput1").val(), $("#textinput2").val())) {
+					alert("Logged!");
+				}
+				else {
+					
+					event.preventDefault();
+					  event.stopPropagation();
+					 $('<div/>')
+    				.append('default ' + event.type + ' prevented')
+    				.appendTo('#log');
+				}
 			}
         </script>
 		<script type="text/javascript" src="/waLib/WAF/Loader.js"></script>
