@@ -1,23 +1,25 @@
 ﻿function button_clicked() {
     if (WAF.directory.loginByPassword($("#textinput1").val(), $("#textinput2").val())) {
+    	WAF.ds.User.all();
         var requestCollection = WAF.sources.pTO_Request.getEntityCollection();
-        //alert(requestCollection.length);
-        //var $element = $('<div data-role="collapsible" data-collapsed="true"><h3>test</h3><p>test</p></div>').appendTo($('#collapsibleSet'));
         requestCollection.forEach({ // on each of the entity collection
             onSuccess: function(event) {
                 var entity = event.entity; // get the entity from event.entity
                 var requestStatus = entity.status.getValue();
+                var ptoHours = entity.requestLineItemCollection.getRelatedClass;
                 if (requestStatus != "commit") {
-                    var $element = $('<div data-role="collapsible" data-collapsed="true" '
+                   var $element = $('<div data-role="collapsible" data-collapsed="true" '
                     + (entity.status.getValue() === "approved" ? 'data-theme="b"' : '') +'><h3>' 
                     + formatDate(entity.firstDayOff.getValue()) + "- " 
                     + formatDate(entity.lastDayOff.getValue())+ "  " 
-                    + requestStatus + '</h3><p>' + '</p></div>')
+                    + requestStatus + '</h3><p>' 
+                    + "PTO hours:" + ptoHours + '</p><p>'
+                    + 'Return to work at: '+ formatDate(entity.returnToWorkDate.getValue()) +'</p>'
+                    + (entity.notes.getValue()?'<p> Notes: '+entity.notes.getValue() +'</p>':"")+
+                    + '</div>')
                     .appendTo($('#collapsibleSet'));
                     $element.collapsible();
                 }
-                    // event.position contains the position of the entity in the entity collection
-                    // you get the attribute value with entity.attribute.getValue()
                 }, onError: function(event) {
                     $("#display").html("An error has been returned");
                 },
