@@ -84,10 +84,10 @@
                         <label for="textinput2">
                             Password:
                         </label>
-                        <input value="" type="text" placeholder="Password" name="" id="textinput2"/>
+                        <input value="" type="password" placeholder="Password" name="" id="textinput2"/>
                     </fieldset>
                 </div>
-                <a onclick="button_clicked()" id="signInButton" href="#page6" data-transition="fade" data-role="button">
+                <a onclick="sinInButton_clicked()" id="signInButton" href="#page6" data-transition="fade" data-role="button">
                     Log In
                 </a>
 				<div style="color:red;text-align:center" id="log"></div>
@@ -102,9 +102,10 @@
                 <h3>
                     PTO Request
                 </h3>
-                <a href="#page1" data-transition="fade" data-role="button" data-iconpos="notext" data-icon="home" class="ui-btn-left">
+                <a href="#page1" data-transition="fade" data-role="button"  data-icon="delete" class="ui-btn-left">
+					Cancel
                 </a>
-				<a href="#page6" data-transition="fade" data-theme="b" data-role="button" class="ui-btn-right">
+				<a href="#page6" data-transition="fade" data-theme="b" data-role="button" data-icon="check" class="ui-btn-right">
 					Done
 				</a>
             </div>
@@ -170,43 +171,13 @@
                 <h3>
                     PTO Status
                 </h3>
-                <a href="#page1" data-transition="fade" data-role="button" data-iconpos="notext" data-icon="home" class="ui-btn-left">
+                <a onclick="logOutButton_clicked()" href="#page1" data-transition="fade" data-role="button"  data-icon="home" class="ui-btn-left">
+					Log Out
                 </a>
             </div>
             <div style="padding: 15px" data-role="content">
                 <div id="collapsibleSet" data-theme="" data-role="collapsible-set" data-content-theme="">
-                    <div data-theme="b" data-role="collapsible" data-collapsed="true">
-                        <h3>
-                            08/15- 08/20 Approved
-                        </h3>
-						   <p>Floating Days: 3, PTO hours: 8</p>
-						   <p>Return to work: 08/20/2012 </p>
-						   <p>Note: PTO Note.</p>
-                    </div>
-                    <div data-role="collapsible" data-collapsed="true">
-                        <h3 style="background-color:red;">
-                            09/01- 09/01 Pending
-                        </h3>
-						   <p>PTO hours: 4</p>
-						   <p>Return to work: 09/01/2012 </p>
-						   <p>Note: PTO Note.</p>
-                    </div>
-                    <div data-role="collapsible" data-collapsed="true">
-                        <h3>
-                            09/20- 09/27 Pending
-                        </h3>
-						   <p>PTO hours: 48</p>
-						   <p>Return to work: 09/28/2012 </p>
-						   <p>Note: PTO Note.</p>
-                    </div>
-                    <div data-theme="b" data-role="collapsible" data-collapsed="true">
-                        <h3>
-                            09/30- 09/30 Approved
-                        </h3>
-						   <p>PTO hours: 7</p>
-						   <p>Return to work: 10/01/2012 </p>
-						   <p>Note: PTO Note.</p>
-                    </div>
+                    
                 </div>
             </div>
             <div data-theme="a" data-role="tabbar" data-iconpos="top">

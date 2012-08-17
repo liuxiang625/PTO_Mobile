@@ -1,6 +1,57 @@
-﻿function button_clicked() {
+﻿function sinInButton_clicked() {
     if (WAF.directory.loginByPassword($("#textinput1").val(), $("#textinput2").val())) {
-    	WAF.ds.User.query("fullName = :1",WAF.directory.currentUser().fullName , {
+    	loadPTOs();
+//        var requestCollection = WAF.sources.pTO_Request.getEntityCollection();
+//        requestCollection.forEach({ // on each of the entity collection
+//            onSuccess: function(event) {
+//                var entity = event.entity; // get the entity from event.entity
+//                var requestStatus = entity.status.getValue();
+//                var ptoHours = entity.requestLineItemCollection.getRelatedClass;
+//                if (requestStatus != "commit") {
+//                   var $element = $('<div data-role="collapsible" data-collapsed="true" '
+//                    + (entity.status.getValue() === "approved" ? 'data-theme="b"' : '') +'><h3>' 
+//                    + formatDate(entity.firstDayOff.getValue()) + "- " 
+//                    + formatDate(entity.lastDayOff.getValue())+ "  " 
+//                    + requestStatus + '</h3><p>' 
+//                    + "PTO hours:" + ptoHours + '</p><p>'
+//                    + 'Return to work at: '+ formatDate(entity.returnToWorkDate.getValue()) +'</p>'
+//                    + (entity.notes.getValue()?'<p> Notes: '+entity.notes.getValue() +'</p>':"")+
+//                    + '</div>')
+//                    .appendTo($('#collapsibleSet'));
+//                    $element.collapsible();
+//                }
+//                }, onError: function(event) {
+//                    $("#display").html("An error has been returned");
+//                },
+//                //            atTheEnd: function(event) {
+//                //                $("#display").html(html); // display of the final result
+//                //            },
+//        });
+    }
+    else {
+        $('#log > div').remove();
+        event.preventDefault();
+        event.stopPropagation();
+        $('<div></div>').append('Invalid username or password').appendTo('#log');
+    }
+};
+
+function logOutButton_clicked() {
+	if (WAF.directory.logout()) {
+		$("#textinput1").val("");
+		$("#textinput2").val("");
+		$("#collapsibleSet").empty();
+	
+	}
+	else {
+		event.preventDefault();
+        event.stopPropagation();
+        alert("Log Out Failed!");
+	}
+};
+
+function loadPTOs() {
+	WAF.ds.User.query("fullName = :1",WAF.directory.currentUser().fullName , {
     		autoExpand: "pTO_RequestCollection",
 			//orderBy: "fullName",
     		onSuccess: function(event) {
@@ -51,40 +102,8 @@
     		}
     		
     	});
-//        var requestCollection = WAF.sources.pTO_Request.getEntityCollection();
-//        requestCollection.forEach({ // on each of the entity collection
-//            onSuccess: function(event) {
-//                var entity = event.entity; // get the entity from event.entity
-//                var requestStatus = entity.status.getValue();
-//                var ptoHours = entity.requestLineItemCollection.getRelatedClass;
-//                if (requestStatus != "commit") {
-//                   var $element = $('<div data-role="collapsible" data-collapsed="true" '
-//                    + (entity.status.getValue() === "approved" ? 'data-theme="b"' : '') +'><h3>' 
-//                    + formatDate(entity.firstDayOff.getValue()) + "- " 
-//                    + formatDate(entity.lastDayOff.getValue())+ "  " 
-//                    + requestStatus + '</h3><p>' 
-//                    + "PTO hours:" + ptoHours + '</p><p>'
-//                    + 'Return to work at: '+ formatDate(entity.returnToWorkDate.getValue()) +'</p>'
-//                    + (entity.notes.getValue()?'<p> Notes: '+entity.notes.getValue() +'</p>':"")+
-//                    + '</div>')
-//                    .appendTo($('#collapsibleSet'));
-//                    $element.collapsible();
-//                }
-//                }, onError: function(event) {
-//                    $("#display").html("An error has been returned");
-//                },
-//                //            atTheEnd: function(event) {
-//                //                $("#display").html(html); // display of the final result
-//                //            },
-//        });
-    }
-    else {
-        $('#log > div').remove();
-        event.preventDefault();
-        event.stopPropagation();
-        $('<div></div>').append('Invalid username or password').appendTo('#log');
-    }
 };
+
 function formatDate(date) {
 	return date.getMonth() + "/" + date.getDate() + "/" + date.getFullYear()
 };
@@ -103,6 +122,7 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 				
 		}
 		else {
+			loadPTOs();
 			$.mobile.changePage("#page6", "slideup");
 		}
 	};// @lock
