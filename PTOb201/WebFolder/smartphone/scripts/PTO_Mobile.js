@@ -48,7 +48,7 @@ function loadPTOs() {
 												(!theHours| ev3.entity.compensation.getValue().indexOf("Floating")? floatingDays += 1: floatingDays += 0);
 											}
 										});
-               							var $element = $('<div data-role="collapsible" data-collapsed="true" style="background: silver" '
+               							var $element = $('<div data-role="collapsible" data-collapsed="true" style="background: #b3b3b3" '
                    						+ (requestStatus === "approved" ? 'data-theme="b"' : '') +'><h3>' 
                    						+ formatDate(ptoRequest.firstDayOff.getValue()) + "- " 
                   						+ formatDate(ptoRequest.lastDayOff.getValue())+ "  " 
@@ -73,6 +73,60 @@ function loadPTOs() {
 function formatDate(date) {
 	return date.getMonth() + "/" + date.getDate() + "/" + date.getFullYear()
 };
+
+function createDate(dateString) {
+	var dateArray = dateString.split("-");
+	return new Date(dateArray[0] , dateArray[1] -1, dateArray[2]);
+}
+function newPTOButton_clicked() {
+	WAF.sources.pTO_Request.newEntity({
+			//autoExpand: "requestor",
+			onSuccess: function(event) {
+				//enableInput();
+				WAF.sources.pTO_Request.setCurrentEntity(event.result);
+				//$$('textField3').focus();
+			}
+		});
+
+};
+
+function saveButton_clicked() {
+	WAF.sources.pTO_Request.firstDayOff = createDate($("#startDate").val());
+	WAF.sources.pTO_Request.lastDayOff = createDate($("#endDate").val());
+	WAF.sources.pTO_Request.returnToWorkDate = WAF.sources.pTO_Request.lastDayOff.getDate() + 1;
+	WAF.sources.pTO_Request.notes = "Notes";
+	WAF.sources.pTO_Request.save({
+        	onSuccess: function(event) {
+//				updateUserAccountDisplay();
+//				if (event.dataSource.status === "pending") {
+//					$("#errorDiv1").html("PTO Request Saved. Double-click any request line item to edit your request.");
+//				} else {
+//					$("#errorDiv1").html("PTO Request Saved.");
+//				}
+				alert("Saved!");
+//				/**/
+//				WAF.sources.pTO_Request.all({
+//					onSuccess: function (event) {
+//						WAF.sources.pTO_Request.selectByKey(primKey);
+//						disableInput();
+//				}});
+				
+			},
+           	onError: function(error) {
+//           		$('#errorDiv1').html(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+           		//Ask Laurent if serverRefresh supports declareDependencies or autoExpand.
+           		WAF.sources.pTO_Request.serverRefresh({forceReload: true});
+         		/*
+           		WAF.sources.pTO_Request.all({
+					onSuccess: function (event) {
+						WAF.sources.pTO_Request.selectByKey(primKey);
+				}});
+				*/
+          	}
+      	
+				
+      	});
+}
 WAF.onAfterInit = function onAfterInit() {// @lock
 
 // @region namespaceDeclaration// @startlock
@@ -83,6 +137,15 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 
 	documentEvent.onLoad = function documentEvent_onLoad (event)// @startlock
 	{// @endlock
+//		 var dates = $('#startDate, #endDate').datepicker({
+//         	minDate: new Date()
+//          	//changeMonth: true,
+////          	onSelect: function(selectedDate) {
+////                var option = this.id == 'enterfrom' ? 'minDate' : 'maxDate',
+////                dates.not(this).datepicker('option', option, $(this).datepicker('getDate'));
+////         	}
+//    	});
+
 		if (WAF.directory.currentUser() === null) {
 				$.mobile.changePage("#page1", "slideup");
 				

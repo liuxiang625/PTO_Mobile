@@ -8,7 +8,7 @@
 		<meta name="wakanda-build" content="2.115958"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, minimum-scale=1.0"/>
 		<meta name="WAF.config.loadCSS" id="waf-palette" content="/walib/WAF/widget/palette/css/widget-palette-cupertino.css"/>
-		<meta data-type="dataSource" data-lib="WAF" data-source="RequestLineItem" data-source-type="dataClass" data-dataType="string" data-autoLoad="true" name="WAF.config.datasources" data-id="requestLineItem" content="requestLineItem"/>
+		<meta name="WAF.config.datasources" data-type="dataSource" data-source-type="dataClass" data-source="RequestLineItem" data-lib="WAF" data-id="requestLineItem" data-dataType="string" data-autoLoad="true" content="requestLineItem"/>
 		<meta name="WAF.config.datasources" data-type="dataSource" data-source-type="dataClass" data-source="PTO_Request" data-lib="WAF" data-id="pTO_Request" data-dataType="string" data-autoLoad="true" content="pTO_Request"/>
 		<meta name="WAF.config.datasources" data-type="dataSource" data-source-type="dataClass" data-source="User" data-lib="WAF" data-id="user" data-dataType="string" data-autoLoad="true" content="user"/>
 		<meta name="WAF.config.loadCSS" id="waf-interface-css" content="styles/PTO_Mobile.css"/>
@@ -57,6 +57,9 @@
 
 
 
+
+
+
 <meta name="WAF.config.modules" content="smartphone"/>
 </head>
     <body id="waf-body" data-workspace-width="320" data-workspace-orientation="portrait" data-workspace-height="480" data-workspace-device="Apple iPhone" data-viewport-width="device-width" data-viewport-minimum-scale="1.0" data-viewport-maximum-scale="1.0" data-viewport-initial-scale="1.0" data-type="document" data-theme="cupertino" data-platform="smartphone" data-lib="WAF" data-apple-meta-tags-status-bar="default" class="cupertino" style="visibility:hidden;">
@@ -102,28 +105,28 @@
                 <h3>
                     PTO Request
                 </h3>
-                <a href="#page1" data-transition="fade" data-role="button"  data-icon="delete" class="ui-btn-left">
+                <a href="#page1" data-transition="fade" data-role="button" data-icon="delete" class="ui-btn-left">
 					Cancel
                 </a>
-				<a href="#page6" data-transition="fade" data-theme="b" data-role="button" data-icon="check" class="ui-btn-right">
+				<a onclick="saveButton_clicked()" href="#page6" data-transition="fade" data-theme="b" data-role="button" data-icon="check" class="ui-btn-right">
 					Done
 				</a>
             </div>
             <div style="padding: 15px" data-role="content">
                 <div data-role="fieldcontain">
                     <fieldset data-role="controlgroup" data-mini="true">
-                        <label for="textinput3">
+                        <label for="startDate">
                             Request Start Date
                         </label>
-                        <input value="" type="date" placeholder="2012/08/14" name="" id="textinput3"/>
+                        <input value="" type="date" placeholder="2012/08/14" name="" id="startDate"/>
                     </fieldset>
                 </div>
                 <div data-role="fieldcontain">
                     <fieldset data-role="controlgroup" data-mini="true">
-                        <label for="textinput7">
+                        <label for="endDate">
                             Request End Date
                         </label>
-                        <input value="" type="text" placeholder="2012/08/14" name="" id="textinput7"/>
+                        <input value="" type="date" placeholder="2012/08/14" name="" id="endDate"/>
                     </fieldset>
                 </div>
                 <div data-role="fieldcontain">
@@ -143,10 +146,10 @@
                 </div>
                 <div data-role="fieldcontain">
                     <fieldset data-role="controlgroup" data-mini="true">
-                        <label for="textinput9">
+                        <label for="textarea">
                             Note:
                         </label>
-                        <input value="" type="text" placeholder="" name="" id="textinput9"/>
+                        <textarea rows="8" name="textarea" id="textarea" cols="40"></textarea>
                     </fieldset>
                 </div>
             </div>
@@ -158,7 +161,7 @@
                 </a>
             </li>
             <li>
-                <a href="#page3" data-theme="" data-icon="plus">
+                <a  onclick="newPTOButton_clicked()" href="#page3" data-theme="" data-icon="plus" >
                     New PTO
                 </a>
             </li>
@@ -171,11 +174,11 @@
                 <h3>
                     PTO Status
                 </h3>
-                <a onclick="logOutButton_clicked()" href="#page1" data-transition="fade" data-role="button"  data-icon="home" class="ui-btn-left">
+                <a onclick="logOutButton_clicked()" href="#page1" data-transition="fade" data-role="button" data-icon="home" class="ui-btn-left">
 					Log Out
                 </a>
             </div>
-            <div > <!--style="padding: 15px" data-role="content"-->
+            <div> <!--style="padding: 15px" data-role="content"-->
                 <div id="collapsibleSet" data-theme="" data-role="collapsible-set" data-content-theme="">
                     
                 </div>
@@ -188,7 +191,7 @@
                 </a>
             </li>
             <li>
-                <a href="#page3" data-theme="" data-icon="plus">
+                <a onclick="newPTOButton_clicked()" href="#page3" data-theme="" data-icon="plus">
                     New PTO
                 </a>
             </li>
