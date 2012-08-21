@@ -35,6 +35,7 @@ function loadPTOs() {
     						ptoCollectionRel.forEach({// browse PTO reqeusts
     							onSuccess: function(eventRelPTO) {
     							var ptoRequest = eventRelPTO.entity;
+    							console.log(ptoRequest.ID.getValue());
     							var requestStatus = ptoRequest.status.getValue();
     							// Call server side method which returns the requestLineItems
 								var requestLineItems = ptoRequest.getLineItemsRange(ptoRequest.firstDayOff.getValue(), ptoRequest.returnToWorkDate.getValue());
@@ -71,7 +72,7 @@ function loadPTOs() {
 };
 
 function formatDate(date) {
-	return date.getMonth() + "/" + date.getDate() + "/" + date.getFullYear()
+	return (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear()
 };
 
 function createDate(dateString) {
@@ -93,8 +94,8 @@ function newPTOButton_clicked() {
 function saveButton_clicked() {
 	WAF.sources.pTO_Request.firstDayOff = createDate($("#startDate").val());
 	WAF.sources.pTO_Request.lastDayOff = createDate($("#endDate").val());
-	WAF.sources.pTO_Request.returnToWorkDate = WAF.sources.pTO_Request.lastDayOff.getDate() + 1;
-	WAF.sources.pTO_Request.notes = "Notes";
+	WAF.sources.pTO_Request.returnToWorkDate = getNextWorkDay(WAF.sources.pTO_Request.lastDayOff);
+	WAF.sources.pTO_Request.notes = "new Notes";
 	WAF.sources.pTO_Request.save({
         	onSuccess: function(event) {
 //				updateUserAccountDisplay();
@@ -126,7 +127,23 @@ function saveButton_clicked() {
       	
 				
       	});
-}
+};
+
+function getNextWorkDay(lastDayOff) {
+	console.log(lastDayOff);
+	if(lastDayOff.getDay() == 5) {
+		//Friday
+		lastDayOff.setDate(lastDayOff.getDate()+3);
+	} else if (lastDayOff.getDay() == 6) {
+		//Saturday
+		lastDayOff.setDate(lastDayOff.getDate()+2);
+	} else {
+		lastDayOff.setDate(lastDayOff.getDate()+1);
+	}
+	console.log(lastDayOff);
+	return(lastDayOff);
+};
+
 WAF.onAfterInit = function onAfterInit() {// @lock
 
 // @region namespaceDeclaration// @startlock
