@@ -35,7 +35,6 @@ function loadPTOs() {
     						ptoCollectionRel.forEach({// browse PTO reqeusts
     							onSuccess: function(eventRelPTO) {
     							var ptoRequest = eventRelPTO.entity;
-    							console.log(ptoRequest.ID.getValue());
     							var requestStatus = ptoRequest.status.getValue();
     							// Call server side method which returns the requestLineItems
 								var requestLineItems = ptoRequest.getLineItemsRange(ptoRequest.firstDayOff.getValue(), ptoRequest.returnToWorkDate.getValue());
@@ -46,7 +45,7 @@ function loadPTOs() {
 											onSuccess: function(ev3) {
 												var theHours = ev3.entity.hoursRequested.getValue();
 												ptoHours += theHours;
-												(!theHours| ev3.entity.compensation.getValue().indexOf("Floating")? floatingDays += 1: floatingDays += 0);
+												(!theHours & ev3.entity.compensation.getValue()== "Floating Day"? floatingDays += 1: floatingDays += 0);
 											}
 										});
                							var $element = $('<div data-role="collapsible" data-collapsed="true" style="background: #b3b3b3" '
@@ -57,7 +56,7 @@ function loadPTOs() {
                    						+ "PTO hours:" + ptoHours + '</p><p>'
                    						+ "Floating days:" + floatingDays + '</p><p>'
                   						+ 'Return to work at: '+ formatDate(ptoRequest.returnToWorkDate.getValue()) +'</p>'
-                   						+ (ptoRequest.notes.getValue()?'<p> Notes: '+ptoRequest.notes.getValue() +'</p>':"")+ '</div>')
+                   						+ (ptoRequest.notes.getValue()?'<p> Notes: '+ptoRequest.notes.getValue() +'</p>':"")+ '<a style="color:blue;text-align:center" href="" data-theme="a" data-icon="star" data-role="button" onClick="" >Commit This PTO</a>'+ '</div>')
                     						.appendTo($('#collapsibleSet'));
                    						$element.collapsible();
                						}
@@ -71,6 +70,10 @@ function loadPTOs() {
     	});
 };
 
+function reloadPTOs() {
+	$("#collapsibleSet").empty();
+	loadPTOs();
+}
 function formatDate(date) {
 	return (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear()
 };
@@ -91,11 +94,19 @@ function newPTOButton_clicked() {
 
 };
 
+function cancelButton_clicked() {
+		
+		WAF.sources.pTO_Request.all();
+		$("#startDate").val("");
+		$("#endDate").val("");
+		$("textarea").val("");
+}
+
 function saveButton_clicked() {
 	WAF.sources.pTO_Request.firstDayOff = createDate($("#startDate").val());
 	WAF.sources.pTO_Request.lastDayOff = createDate($("#endDate").val());
 	WAF.sources.pTO_Request.returnToWorkDate = getNextWorkDay(WAF.sources.pTO_Request.lastDayOff);
-	WAF.sources.pTO_Request.notes = "new Notes";
+	WAF.sources.pTO_Request.notes = $("textarea").val();
 	WAF.sources.pTO_Request.save({
         	onSuccess: function(event) {
 //				updateUserAccountDisplay();
@@ -104,7 +115,9 @@ function saveButton_clicked() {
 //				} else {
 //					$("#errorDiv1").html("PTO Request Saved.");
 //				}
-				alert("Saved!");
+				alert("Your PTO request has been sent!");
+				WAF.sources.pTO_Request.all();
+				reloadPTOs();
 //				/**/
 //				WAF.sources.pTO_Request.all({
 //					onSuccess: function (event) {
@@ -116,7 +129,7 @@ function saveButton_clicked() {
            	onError: function(error) {
 //           		$('#errorDiv1').html(error['error'][0].message + " (" + error['error'][0].errCode + ")");
            		//Ask Laurent if serverRefresh supports declareDependencies or autoExpand.
-           		WAF.sources.pTO_Request.serverRefresh({forceReload: true});
+           		console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
          		/*
            		WAF.sources.pTO_Request.all({
 					onSuccess: function (event) {
@@ -130,7 +143,6 @@ function saveButton_clicked() {
 };
 
 function getNextWorkDay(lastDayOff) {
-	console.log(lastDayOff);
 	if(lastDayOff.getDay() == 5) {
 		//Friday
 		lastDayOff.setDate(lastDayOff.getDate()+3);
@@ -140,7 +152,6 @@ function getNextWorkDay(lastDayOff) {
 	} else {
 		lastDayOff.setDate(lastDayOff.getDate()+1);
 	}
-	console.log(lastDayOff);
 	return(lastDayOff);
 };
 

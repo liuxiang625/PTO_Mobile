@@ -4,8 +4,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
         <meta name="generator" content="Wakanda GUIDesigner"/>
         
-    	<meta name="wakanda-version" content="2.0 build 2.115958"/>
-		<meta name="wakanda-build" content="2.115958"/>
+    	<meta name="wakanda-version" content="2.0 build 2.114832"/>
+		<meta name="wakanda-build" content="2.114832"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, minimum-scale=1.0"/>
 		<meta name="WAF.config.loadCSS" id="waf-palette" content="/walib/WAF/widget/palette/css/widget-palette-cupertino.css"/>
 		<meta name="WAF.config.datasources" data-type="dataSource" data-source-type="dataClass" data-source="RequestLineItem" data-lib="WAF" data-id="requestLineItem" data-dataType="string" data-autoLoad="true" content="requestLineItem"/>
@@ -60,6 +60,9 @@
 
 
 
+
+
+
 <meta name="WAF.config.modules" content="smartphone"/>
 </head>
     <body id="waf-body" data-workspace-width="320" data-workspace-orientation="portrait" data-workspace-height="480" data-workspace-device="Apple iPhone" data-viewport-width="device-width" data-viewport-minimum-scale="1.0" data-viewport-maximum-scale="1.0" data-viewport-initial-scale="1.0" data-type="document" data-theme="cupertino" data-platform="smartphone" data-lib="WAF" data-apple-meta-tags-status-bar="default" class="cupertino" style="visibility:hidden;">
@@ -95,7 +98,7 @@
                 </a>
 				<div style="color:red;text-align:center" id="log"></div>
                 <div style=" text-align:center">
-                    <img style="width: 30%; height: 30%" src="http://assets.codiqa.com/ps/30080/b22cfa549dd5afe8wakandaLogoIcon.png"/>
+                    <img style="width: 300px; height: 300px" src="../images/calendar.jpg"/>
                 </div>
             </div>
         </div>
@@ -105,7 +108,7 @@
                 <h3>
                     PTO Request
                 </h3>
-                <a href="#page1" data-transition="fade" data-role="button" data-icon="delete" class="ui-btn-left">
+                <a onclick="cancelButton_clicked()" href="#page6" data-transition="fade" data-role="button" data-icon="delete" class="ui-btn-left">
 					Cancel
                 </a>
 				<a onclick="saveButton_clicked()" href="#page6" data-transition="fade" data-theme="b" data-role="button" data-icon="check" class="ui-btn-right">
@@ -129,7 +132,7 @@
                         <input value="" type="date" placeholder="2012/08/14" name="" id="endDate"/>
                     </fieldset>
                 </div>
-                <div data-role="fieldcontain">
+                <!--<div data-role="fieldcontain">
                     <fieldset data-type="horizontal" data-role="controlgroup" data-mini="true">
                         <legend>
                             Request Type
@@ -143,7 +146,7 @@
                             PTO
                         </label>
                     </fieldset>
-                </div>
+                </div>-->
                 <div data-role="fieldcontain">
                     <fieldset data-role="controlgroup" data-mini="true">
                         <label for="textarea">
@@ -161,7 +164,7 @@
                 </a>
             </li>
             <li>
-                <a  onclick="newPTOButton_clicked()" href="#page3" data-theme="" data-icon="plus" >
+                <a onclick="newPTOButton_clicked()" href="#page3" data-theme="" data-icon="plus">
                     New PTO
                 </a>
             </li>
@@ -176,6 +179,9 @@
                 </h3>
                 <a onclick="logOutButton_clicked()" href="#page1" data-transition="fade" data-role="button" data-icon="home" class="ui-btn-left">
 					Log Out
+                </a>
+				<a onclick="reloadPTOs()" data-transition="fade" data-role="button" data-icon="refresh" class="ui-btn-right">
+					Refresh
                 </a>
             </div>
             <div> <!--style="padding: 15px" data-role="content"-->
