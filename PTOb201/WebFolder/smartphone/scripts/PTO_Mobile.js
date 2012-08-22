@@ -48,15 +48,15 @@ function loadPTOs() {
 												(!theHours & ev3.entity.compensation.getValue()== "Floating Day"? floatingDays += 1: floatingDays += 0);
 											}
 										});
-               							var $element = $('<div data-role="collapsible" data-collapsed="true" style="background: #b3b3b3" '
+               							var $element = $('<div data-role="collapsible" data-collapsed="true" style="background: #ddd" '
                    						+ (requestStatus === "approved" ? 'data-theme="b"' : '') +'><h3>' 
-                   						+ formatDate(ptoRequest.firstDayOff.getValue()) + "- " 
+                   						+ formatDate(ptoRequest.firstDayOff.getValue()) + " - " 
                   						+ formatDate(ptoRequest.lastDayOff.getValue())+ "  " 
-                   						+ requestStatus + '</h3><p>' 
-                   						+ "PTO hours:" + ptoHours + '</p><p>'
-                   						+ "Floating days:" + floatingDays + '</p><p>'
-                  						+ 'Return to work at: '+ formatDate(ptoRequest.returnToWorkDate.getValue()) +'</p>'
-                   						+ (ptoRequest.notes.getValue()?'<p> Notes: '+ptoRequest.notes.getValue() +'</p>':"")+ '<a style="color:blue;text-align:center" href="" data-theme="a" data-icon="star" data-role="button" onClick="" >Commit This PTO</a>'+ '</div>')
+                   						+ requestStatus + '</h3><p style="padding-left: 15px;margin: 0">' 
+                   						+ "	PTO hours:" + ptoHours + '</p><p style="padding-left: 15px;margin: 0">'
+                   						+ "	Floating days:" + floatingDays + '</p><p style="padding-left: 15px;margin: 0"">'
+                  						+ '	Return to work at: '+ formatDate(ptoRequest.returnToWorkDate.getValue()) +'</p>'
+                   						+ (ptoRequest.notes.getValue()?'<p style="padding-left: 15px;margin: 0"">	Notes: '+ptoRequest.notes.getValue() +'</p>':"")+ '<a style="color:blue;text-align:center;padding-left: 15px" href="" data-theme="a" data-icon="star" data-role="button" onClick="" >Commit This PTO</a>'+ '</div>')
                     						.appendTo($('#collapsibleSet'));
                    						$element.collapsible();
                						}

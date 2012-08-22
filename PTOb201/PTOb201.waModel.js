@@ -3,6 +3,51 @@ guidedModel =// @startlock
 {
 	RequestLineItem :
 	{
+		methods :
+		{// @endlock
+			getCalendarArray:function()
+			{// @lock
+				// Add your code here
+				//{title  : 'event1', start  : '2012-08-01'}
+				
+				/*
+				eventArray.push({title  : 'Tim Penner : Floating Day', start  : '2012-08-01'});
+				eventArray.push({title  : 'Tim Penner : Floating Day', start  : '2012-08-02'});
+				eventArray.push({title  : 'Josh Fletcher : Paid Time Off : 4hrs', start  : '2012-09-05'});
+				*/
+				
+				var sessionRef = currentSession(); // Get session.
+				var promoteToken = sessionRef.promoteWith("Administrator"); //temporarily make this session Admin level.	
+				//if (loginByPassword("admin", "admin")) {	
+					var eventArray = [];		
+					var ptoLineItems = ds.RequestLineItem.query("ptoRequest.status = :1", "approved");
+					
+					/**/
+					ptoLineItems.forEach(function(lineItem) {
+						var eventObj = {};
+						if (typeof lineItem.ptoRequest !== "undefined") {
+							if (typeof lineItem.ptoRequest.requestor !== "undefined") {
+								eventObj.title =  lineItem.ptoRequest.requestor.fullName + " : " + lineItem.compensation;
+								if (lineItem.compensation === "Paid Time Off") {
+									eventObj.title += " : " + lineItem.hoursRequested;
+								}
+								eventObj.start = formatDateForCalendar(lineItem.dateRequested);
+								eventArray.push(eventObj);
+							}
+						}
+					});
+					
+					
+					//logout();
+					sessionRef.unPromote(promoteToken); //put the session back to normal.
+					return eventArray;
+					
+				//}
+				
+				
+				
+			}// @startlock
+		},
 		events :
 		{
 			onRemove:function()
@@ -13,7 +58,6 @@ guidedModel =// @startlock
 				var myCurrentUser = currentUser(); // Get the current user.
 				var myUserV = ds.User.find("ID = :1", myCurrentUser.ID);
 				
-				//debugger;
 				if (sessionRef.belongsTo("Administrator")) {
 					//err = { error : 5099, errorMessage: "The Administrator is not allowed to remove PTO Request Line Items."};
 					//return err;
@@ -124,7 +168,16 @@ guidedModel =// @startlock
 							} //(this.compensation === "Floating Day")
 							
 							if (this.compensation === "Paid Time Off") {
-								
+								if ((this.hoursRequested < 1) || (this.hoursRequested > 7)) {
+									err = { error : 5052, errorMessage: "You cannot request hours less than 1 or greater than 8."};
+									return err;
+								} else {
+									//check if we have enough hours.
+									if ((this.hoursRequested > myUserV.ptoHours) && (this.hoursRequested > oldEntity.hoursRequested)){
+										err = { error : 5054, errorMessage: "You do not have enough hours in your bank for this request."};
+										return err;
+									}
+								}//((this.hoursRequested < 1) || (this.hoursRequested > 7))
 							}
 						} else {
 						//Did not change compensation method
@@ -175,7 +228,6 @@ guidedModel =// @startlock
 					var myCurrentUser = currentUser(); // Get the current user
 					var myUser = ds.User.find("ID = :1", myCurrentUser.ID); // Load their user entity.
 					
-					//debugger;
 					if (this.hoursRequested < oldEntity.hoursRequested) {
 						myUser.ptoHours += oldEntity.hoursRequested - this.hoursRequested;
 					}
@@ -239,7 +291,7 @@ guidedModel =// @startlock
 			},// @lock
 			getLineItemsRange:function(startDate, endDate)
 			{// @lock
-				//debugger;
+		
 				// For the current PTO Request get all line items in date range.
 				//return this.requestLineItemCollection;
 				//return this.requestLineItemCollection.query("compensation = :1", "Floating Day");
@@ -272,15 +324,22 @@ guidedModel =// @startlock
 		{
 			onRestrictingQuery:function()
 			{// @endlock
+				var myCurrentUser = currentUser(); // Get the current user
+				var sessionRef = currentSession(); // Get session.
 				var result = ds.PTO_Request.createEntityCollection();
 				/**/
-				if (currentUser().name === "admin") {
+				//if (currentUser().name === "admin") {
+				if (currentSession().belongsTo("Administrator")) {
 					result = ds.PTO_Request.all();
 				
 				} else {
 					//Load User entity.
-					var myCurrentUser = currentUser(); // Get the current user
+					//var myCurrentUser = currentUser(); // Get the current user
+					//var sessionRef = currentSession(); // Get session.
+					var promoteToken = sessionRef.promoteWith("Administrator"); //temporarily make this session Admin level.	
 					var myUser = ds.User.find("ID = :1", myCurrentUser.ID); // Load their user entity.
+					sessionRef.unPromote(promoteToken); //put the session back to normal.
+					
 					if (myUser !== null) {
 						if (myUser.accessLevel < 4) {
 							result = ds.PTO_Request.query("requestor.myManager.login = :1 and status !== :2", myCurrentUser.name, "pending");
@@ -347,9 +406,21 @@ guidedModel =// @startlock
 				}
 				
 				/**/
-				//Send email when appropriate.
+				//Employee send email to manager for approval.
 				if ((myUser !== null) && (!this.isNew())) {
 					if ((this.status === "commit") && (oldEntity.status !== "commit")) {
+						//Put request line items in an array.
+						var requestLineItemsArray = [];
+						var lineItems = this.requestLineItemCollection;
+						lineItems.forEach(function(lineItem) {
+							var lineItemObj = {};
+							lineItemObj.hoursRequested = lineItem.hoursRequested;
+							lineItemObj.dateRequested = formatDate(lineItem.dateRequested);
+							lineItemObj.compensation = lineItem.compensation;
+							requestLineItemsArray.push(lineItemObj);
+						});
+						
+						
 						//Employee is requesting PTO. Send email to manager.
 						var theEmailWorker = new SharedWorker("sharedWorkers/emailDaemon.js", "emailDaemon");
 						var thePort = theEmailWorker.port; // MessagePort to communicate with the email shared worker.
@@ -357,28 +428,83 @@ guidedModel =// @startlock
 								requestorID : this.requestor.ID,
 								firstDayOff: formatDate(this.firstDayOff),
 								lastDayOff: formatDate(this.lastDayOff),
-								ptoID: this.ID
+								requestLineItems: requestLineItemsArray,
+								notes: this.emailText
+								//requestLineItems: [{name: "dave"}, {name: "tom"}, {name: "bill"}]
 						});
+						
+						/*
+						if (this.notes === null) {
+							this.notes = "";
+						}
+						this.notes += formatDate(new Date()) + " " + myUser.fullName;
+						this.notes += this.emailText;
+						//this.notes = "";
+						*/
+						
+						new ds.Note({ 
+							date: new Date(),
+							title: "PTO Request from " + this.requestor.fullName + " submitted to Manager.",
+							body: this.emailText,
+							date: new Date(),
+							pto: this
+						}).save();
 					}//((this.status === "commit") && (oldEntity.status !== "commit"))
 					
-					if ((this.status === "approved") && (oldEntity.status !== "approved")) {
+					//Manager send email to employee
+					var sendEmaiToManager = false;
+					if ((this.status === "approved") && (oldEntity.status === "commit")) {
+						sendEmaiToManager = true;
+					}
+					if ((this.status === "rejected") && (oldEntity.status === "commit")) {
+						sendEmaiToManager = true;
+					}
+					//if ((this.status === "approved") && (oldEntity.status !== "approved")) {
+					if (sendEmaiToManager) {
 						//Manager has approved the request. Send email to employee.
+						//Put request line items in an array.
+						var requestLineItemsArray = [];
+						var lineItems = this.requestLineItemCollection;
+						lineItems.forEach(function(lineItem) {
+							var lineItemObj = {};
+							lineItemObj.hoursRequested = lineItem.hoursRequested;
+							lineItemObj.dateRequested = formatDate(lineItem.dateRequested);
+							lineItemObj.compensation = lineItem.compensation;
+							requestLineItemsArray.push(lineItemObj);
+						});
+						
 						var theEmailWorker = new SharedWorker("sharedWorkers/emailDaemon.js", "emailDaemon");
 						var thePort = theEmailWorker.port; // MessagePort to communicate with the email shared worker.
 						thePort.postMessage({what: 'requestApproved',
 								requestorID : this.requestor.ID,
 								firstDayOff: formatDate(this.firstDayOff),
 								lastDayOff: formatDate(this.lastDayOff),
-								ptoID: this.ID
+								requestLineItems: requestLineItemsArray,
+								notes: this.emailText,
+								status: this.status
 						});
-					}//((this.status === "approved") && (oldEntity.status !== "approved"))
-					
-				}
+						
+						//this.notes = "";
+						
+						new ds.Note({ 
+							date: new Date(),
+							title: "PTO  request from "  + this.requestor.fullName + " "  + this.status + " by " + this.requestor.myManager.fullName,
+							body: this.emailText,
+							pto: this
+						}).save();
+						
+						
+						if (this.status === "rejected") {
+							this.status = "pending";
+						}
+						
+						
+					}//sendEmaiToManager)
+				} //((myUser !== null) && (!this.isNew())) {
 				
 			},// @startlock
 			onInit:function()
 			{// @endlock
-				//debugger;
 				var sessionRef = currentSession(); // Get session.
 				var promoteToken = sessionRef.promoteWith("Administrator"); //temporarily make this session Admin level.
 				var err;
@@ -459,10 +585,12 @@ guidedModel =// @startlock
 						}
 					}
 					
+					/*
 					if (this.notes != oldEntity.notes) {
 						err = { error : 4060, errorMessage: "You do not have permission to update the Notes field."};
 						return err;		
 					}
+					*/
 					
 					
 					
@@ -715,7 +843,6 @@ guidedModel =// @startlock
 			validatePassword:function(password) //only use the password.
 			{// @lock
 				var ha1 = directory.computeHA1(this.ID, password);
-				console.log("Validate Password ha1: " + ha1 + " this.HA1Key: " + this.HA1Key);
 				return (ha1 === this.HA1Key); //true if validated, false otherwise.
 			}// @startlock
 		},

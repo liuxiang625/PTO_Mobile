@@ -2,6 +2,9 @@
 WAF.onAfterInit = function onAfterInit() {// @lock
 
 // @region namespaceDeclaration// @startlock
+	var dataGrid2 = {};	// @dataGrid
+	var button12 = {};	// @button
+	var button5 = {};	// @button
 	var pTO_RequestEvent = {};	// @dataSource
 	var button1 = {};	// @button
 	var button24 = {};	// @button
@@ -15,7 +18,6 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 	var dataGrid3 = {};	// @dataGrid
 	var button22 = {};	// @button
 	var button21 = {};	// @button
-	var dataGrid1 = {};	// @dataGrid
 	var documentEvent = {};	// @document
 // @endregion// @endlock
 
@@ -28,6 +30,45 @@ var yyyy = today.getFullYear();
 if(dd<10){dd='0'+dd} 
 if(mm<10){mm='0'+mm}
 var myCurrentDate = mm+'/'+dd+'/'+yyyy;
+
+function savePTORequest(message) {
+	if (typeof message !== "undefined") {
+		WAF.sources.pTO_Request.emailText = message;
+	}
+	
+	var primKey = WAF.sources.pTO_Request.ID;
+	$("#errorDiv1").html("");
+	WAF.sources.pTO_Request.save({
+        	onSuccess: function(event) {
+			updateUserAccountDisplay();
+			if (event.dataSource.status === "pending") {
+				$("#errorDiv1").html("PTO Request Saved. Double-click any request line item to edit your request.");
+			} else {
+				$("#errorDiv1").html("PTO Request Saved.");
+			}
+			/**/
+			WAF.sources.pTO_Request.query(
+				"status !== :1", "closed",
+				{
+				onSuccess: function (event) {
+					WAF.sources.pTO_Request.selectByKey(primKey);
+					createEmailAccordian();
+					disableInput();
+			}});	
+		},
+           	onError: function(error) {
+           		$('#errorDiv1').html(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+           		//Ask Laurent if serverRefresh supports declareDependencies or autoExpand.
+           		WAF.sources.pTO_Request.serverRefresh({forceReload: true});
+         		/*
+           		WAF.sources.pTO_Request.all({
+					onSuccess: function (event) {
+					WAF.sources.pTO_Request.selectByKey(primKey);
+				}});
+				*/
+          	}		
+      	});
+} //end - savePTORequest()
 
 function formatDate(dateObject) {
 	var curr_date = dateObject.getDate();
@@ -104,7 +145,7 @@ function enableInput() {
 	$("#textField3").removeAttr("disabled"); //First Day Off
 	$("#textField4").removeAttr("disabled"); //Last Day Off
 	$("#textField15").removeAttr("disabled"); //line item hours
-	$$("combobox2").enable(); //status
+	//$$("combobox2").enable(); //status
 	$$("button6").enable();
 	$$("button7").enable();
 }
@@ -125,7 +166,7 @@ function disableInput() {
 			$("#textField3").attr("disabled", "disabled"); //First Day Off
 			$("#textField4").attr("disabled", "disabled"); //Last Day Off
 			$("#textField5").attr("disabled", "disabled"); //Return To Work Date
-			$("#textField8").attr("disabled", "disabled"); //Notes
+			//$("#textField8").attr("disabled", "disabled"); //Notes
 			
 			$$("button6").disable();
 			$$("button7").disable();
@@ -147,7 +188,7 @@ function disableInput() {
 				$$("combobox1").disable();
 				$("#textField15").attr("disabled", "disabled"); //line item hours
 				$$("combobox2").disable(); //status
-				$("#textField8").attr("disabled", "disabled"); //Notes
+				//$("#textField8").attr("disabled", "disabled"); //Notes
 				
 			} else {
 				$$("button6").enable();
@@ -188,7 +229,6 @@ function disableInput() {
 			$$("combobox2").enable(); //status
 		} //(WAF.sources.pTO_Request.status !== "pending") 
 	}
-	
 }
 
 function getNextWorkDay(textFieldIDSelector) {
@@ -246,10 +286,19 @@ function getNextWorkDay(textFieldIDSelector) {
 	} //Switch
 	
 	var dd = lastDayArray[1];
-	
-	
 	var lastDay = new Date(yyyy, mm, dd);
-	lastDay.setDate(lastDay.getDate()+1);
+	
+	if(lastDay.getDay() == 5) {
+		//Friday
+		lastDay.setDate(lastDay.getDate()+3);
+	} else if (lastDay.getDay() == 6) {
+		//Saturday
+		lastDay.setDate(lastDay.getDate()+2);
+	} else {
+		lastDay.setDate(lastDay.getDate()+1);
+	}
+	
+	
 	var yyyyNext = lastDay.getFullYear();
 	var mmNext = lastDay.getMonth();
 	
@@ -309,8 +358,40 @@ function getNextWorkDay(textFieldIDSelector) {
 	//return lastDay.toDateString();
 }
 
+function createEmailAccordian() {
+	$('#noteDL').children().remove();
+	
+	var currentPTOID = waf.sources.pTO_Request.ID;
+	
+	var noteCollection = WAF.ds.Note.query("pto.ID = " + currentPTOID, {
+		onSuccess: function(event) {
+			event.entityCollection.toArray("date, title, body", {onSuccess: function(ev) {
+				var arr = ev.result;
+				//var myHTML = '';
+				arr.forEach(function(elem) { 
+					$('<dt>', {
+						text: formatDate(ISOToDate(elem.date)) + " : " + elem.title
+					}).appendTo('#noteDL');		
+					
+					
+					var myBodyDiv = $('<div>', {
+						text: elem.body,
+						"class" : "noteBodyDiv"
+					});
+									
+					var myDD = $('<dd>');
+					myDD.append(myBodyDiv);
+					$('#noteDL').append(myDD);
+				});
+				//$('#noteContainer').html(myHTML);
+			}});
+		}
+	});
+}
+
 function signIn() {
 	$("#errorDiv1").html("");
+	$$("signInError").setValue("");
 	if (WAF.directory.loginByPassword(WAF.sources.loginObject.loginName, WAF.sources.loginObject.password)) {
 		statusArray = [];
 		if ((WAF.directory.currentUserBelongsTo("Payroll")) || 
@@ -355,28 +436,55 @@ function signIn() {
 		$$("textField1").setValue("");
 		$$("textField2").setValue("");
 		
-		WAF.sources.pTO_Request.all({
+		//WAF.sources.pTO_Request.query("status !== :1", "closed");
+		WAF.sources.pTO_Request.query(
+			"status !== :1", "closed",
+			{
 			onSuccess: function(event) {
 				disableInput();
+				createEmailAccordian();
 			}
 		});
 		
+		//Closed PTOs.
+		waf.sources.pTO_Request1.query("status = :1", "closed");
 		
-		
-		
-
 	} else {
 		$$("signInError").setValue("Invalid login.");
 	}
+} //end signIn()
+
+function handleEmailMessageDialog() {
+	$$('emailMessageDialog').closeDialog(); 
+	savePTORequest($('#emailBody').val());
 }
+
 //David Robbins Functions - End
 
 
 // eventHandlers// @lock
 
+	dataGrid2.onRowClick = function dataGrid2_onRowClick (event)// @startlock
+	{// @endlock
+		disableInput();
+		$("#errorDiv1").html('');
+		createEmailAccordian();
+	};// @lock
+
+	button12.click = function button12_click (event)// @startlock
+	{// @endlock
+		//ok button for email message dialog.
+		handleEmailMessageDialog()
+	};// @lock
+
+	button5.click = function button5_click (event)// @startlock
+	{// @endlock
+		$$('emailMessageDialog').closeDialog(); //cancel button
+		//$('emailBody').val("");
+	};// @lock
+
 	pTO_RequestEvent.onCurrentElementChange = function pTO_RequestEvent_onCurrentElementChange (event)// @startlock
 	{// @endlock
-		
 		if (!((WAF.directory.currentUserBelongsTo("Payroll")) || 
 			(WAF.directory.currentUserBelongsTo("Manager")) ||
 			(WAF.directory.currentUserBelongsTo("Administrator")))) {
@@ -397,6 +505,7 @@ function signIn() {
 	button1.click = function button1_click (event)// @startlock
 	{// @endlock
 		//Cancel Changes to PTO Request
+		$('#errorDiv1').html("");
 		var primKey = WAF.sources.pTO_Request.ID;
 		WAF.sources.pTO_Request.all({
 			onSuccess: function (event) {
@@ -407,7 +516,7 @@ function signIn() {
 
 	button24.click = function button24_click (event)// @startlock
 	{// @endlock
-		//logout
+		//signout
 		$("#errorDiv1").html("");
 		if (WAF.directory.logout()) {
 			//reset status array
@@ -415,6 +524,7 @@ function signIn() {
 			WAF.sources.statusArray.sync();
 			//WAF.sources.pTO_Request.all();
 			WAF.sources.pTO_Request.setEntityCollection();
+			WAF.sources.pTO_Request1.setEntityCollection();
 			
 			$$("richText2").setValue("");
 			$$("signOutContainer").hide();
@@ -444,38 +554,38 @@ function signIn() {
 	button10.click = function button10_click (event)// @startlock
 	{// @endlock
 		// Save Button
-		var primKey = WAF.sources.pTO_Request.ID;
-		$("#errorDiv1").html("");
-		WAF.sources.pTO_Request.save({
-        	onSuccess: function(event) {
-				updateUserAccountDisplay();
-				if (event.dataSource.status === "pending") {
-					$("#errorDiv1").html("PTO Request Saved. Double-click any request line item to edit your request.");
-				} else {
-					$("#errorDiv1").html("PTO Request Saved.");
-				}
-				/**/
-				WAF.sources.pTO_Request.all({
-					onSuccess: function (event) {
-						WAF.sources.pTO_Request.selectByKey(primKey);
-						disableInput();
-				}});
-				
-			},
-           	onError: function(error) {
-           		$('#errorDiv1').html(error['error'][0].message + " (" + error['error'][0].errCode + ")");
-           		//Ask Laurent if serverRefresh supports declareDependencies or autoExpand.
-           		WAF.sources.pTO_Request.serverRefresh({forceReload: true});
-         		/*
-           		WAF.sources.pTO_Request.all({
-					onSuccess: function (event) {
-						WAF.sources.pTO_Request.selectByKey(primKey);
-				}});
-				*/
-          	}
-      	
-				
-      	});
+		if (WAF.sources.pTO_Request.status === "commit") {
+			//$('#emailBody').val("");
+			$$('emailBody')._tmpVal = "";
+			$$('emailBody').setValue("");
+			$$('emailMessageDialogTitle').setValue("Enter Message To Be Included in Email to Manager");
+			$('#emailMessageDialog').css("top", 285);
+			$('#emailMessageDialog').css("left", 400);
+			
+			WAF.widgets['emailMessageDialog'].displayDialog();
+			$$('emailBody').focus();
+			
+			//WAF.sources.emailMessageObject.body = "";
+			//WAF.sources.emailMessageObject.sync();
+			
+			
+		} else if ((WAF.sources.pTO_Request.status === "rejected") || (WAF.sources.pTO_Request.status === "approved")) {
+			$$('emailBody')._tmpVal = "";
+			$$('emailBody').setValue("");
+			//$('#emailBody').val("");
+			//_tmpVal
+			$$('emailMessageDialogTitle').setValue("Enter Message To Be Included in Email to Employee");
+			$('#emailMessageDialog').css("top", 200);
+			$('#emailMessageDialog').css("left", 400);
+			
+			WAF.widgets['emailMessageDialog'].displayDialog();
+			$$('emailBody').focus();
+			
+			//WAF.sources.emailMessageObject.body = "";
+			//WAF.sources.emailMessageObject.sync();
+		} else {
+			savePTORequest();
+		}
 	};// @lock
 
 	button9.click = function button9_click (event)// @startlock
@@ -564,18 +674,11 @@ function signIn() {
 		$$('dialog3').closeDialog(); //ok button
 	};// @lock
 
-	dataGrid1.onRowClick = function dataGrid1_onRowClick (event)// @startlock
-	{// @endlock
-		disableInput();
-		$("#errorDiv1").html('');
-		
-		
-	};// @lock
-
 	documentEvent.onLoad = function documentEvent_onLoad (event)// @startlock
 	{// @endlock
 		WAF.sources.pTO_Request.declareDependencies("requestor");
-		WAF.sources.pTO_Request.all();
+		//WAF.sources.pTO_Request.all();
+		//WAF.sources.pTO_Request.query("status !== :1", "closed");
 		
 		$("#errorDiv1").html("");
 		$("#textField10").attr("disabled", true);  //Status
@@ -583,6 +686,7 @@ function signIn() {
 		$("#textField7").attr("disabled", true);  //Date Entered
 		$("#textField6").attr("disabled", true);  //Auth date
 		$$("textField14").disable(); //request line item date
+		$("#textField8").attr("disabled", "disabled"); //Notes
 		
 		if (WAF.directory.currentUser() === null) {
 			$$("richText2").setValue("");
@@ -620,13 +724,31 @@ function signIn() {
 	    	}
 		});
 		
+		//Handle return key if user is in email message dialog.
+		$('#emailBody').live('keyup', function (e) {
+	   		if ( e.keyCode == 13 ){
+	   			handleEmailMessageDialog()
+	    	}
+		});
+		
 		compensationArray = [];
 		compensationArray.push({title: 'Floating Day'});
 		compensationArray.push({title: 'Paid Time Off'});
 		WAF.sources.compensationArray.sync();
+		
+		$('dl').on('click', 'dt', function() {
+			$this = $(this);
+			$this.nextUntil('dt').slideDown(300);
+			$this.siblings('dt').nextUntil('dt').slideUp(300);
+		});
+		
+		//$('dd').hide();	
 	};// @lock
 
 // @region eventManager// @startlock
+	WAF.addListener("dataGrid2", "onRowClick", dataGrid2.onRowClick, "WAF");
+	WAF.addListener("button12", "click", button12.click, "WAF");
+	WAF.addListener("button5", "click", button5.click, "WAF");
 	WAF.addListener("pTO_Request", "onCurrentElementChange", pTO_RequestEvent.onCurrentElementChange, "WAF");
 	WAF.addListener("button1", "click", button1.click, "WAF");
 	WAF.addListener("button24", "click", button24.click, "WAF");
@@ -640,7 +762,6 @@ function signIn() {
 	WAF.addListener("dataGrid3", "onRowDblClick", dataGrid3.onRowDblClick, "WAF");
 	WAF.addListener("button22", "click", button22.click, "WAF");
 	WAF.addListener("button21", "click", button21.click, "WAF");
-	WAF.addListener("dataGrid1", "onRowClick", dataGrid1.onRowClick, "WAF");
 	WAF.addListener("document", "onLoad", documentEvent.onLoad, "WAF");
 // @endregion
 };// @endlock
