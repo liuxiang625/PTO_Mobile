@@ -1,6 +1,7 @@
 ﻿function sinInButton_clicked() {
     if (WAF.directory.loginByPassword($("#textinput1").val(), $("#textinput2").val())) {
-    	loadPTOs();
+    	loadPTOs('pending');
+    	loadPTOs('approved');
     }
     else {
         $('#log > div').remove();
@@ -24,7 +25,8 @@ function logOutButton_clicked() {
 	}
 };
 
-function loadPTOs() {
+function loadPTOs(ptoStatus) {
+	console.log(ptoStatus);
 	WAF.ds.User.query("fullName = :1",WAF.directory.currentUser().fullName , {
     		autoExpand: "pTO_RequestCollection",
     		onSuccess: function(event) {
@@ -38,7 +40,8 @@ function loadPTOs() {
     							var requestStatus = ptoRequest.status.getValue();
     							// Call server side method which returns the requestLineItems
 								var requestLineItems = ptoRequest.getLineItemsRange(ptoRequest.firstDayOff.getValue(), ptoRequest.returnToWorkDate.getValue());
-									if (requestStatus != "commit") {
+									//if (requestStatus != "commit") {
+										if (requestStatus == ptoStatus) {
 										var ptoHours = 0;
 										var floatingDays = 0; 
 										requestLineItems.forEach({
@@ -56,8 +59,9 @@ function loadPTOs() {
                    						+ "	PTO hours:" + ptoHours + '</p><p style="padding-left: 15px;margin: 0">'
                    						+ "	Floating days:" + floatingDays + '</p><p style="padding-left: 15px;margin: 0"">'
                   						+ '	Return to work at: '+ formatDate(ptoRequest.returnToWorkDate.getValue()) +'</p>'
-                   						+ (ptoRequest.notes.getValue()?'<p style="padding-left: 15px;margin: 0"">	Notes: '+ptoRequest.notes.getValue() +'</p>':"")+ '<a style="color:blue;text-align:center;padding-left: 15px" href="" data-theme="a" data-icon="star" data-role="button" onClick="" >Commit This PTO</a>'+ '</div>')
-                    						.appendTo($('#collapsibleSet'));
+                   						+ (ptoRequest.notes.getValue()?'<p style="padding-left: 15px;margin: 0"">	Notes: '+ptoRequest.notes.getValue() +'</p>':"")
+                   						+ (ptoStatus == "pending"?'<a style="color:blue;text-align:center;padding-left: 15px" href="" data-theme="a" data-icon="star" data-role="button" onClick="" >Commit This PTO</a>'+ '</div>':""))
+                    						.appendTo(ptoStatus == "pending"?$('#collapsibleSet'):('#collapsibleSetForApprovedPTOs'));
                    						$element.collapsible();
                						}
 								}
@@ -72,7 +76,8 @@ function loadPTOs() {
 
 function reloadPTOs() {
 	$("#collapsibleSet").empty();
-	loadPTOs();
+	loadPTOs('pending');
+	loadPTOs('approved');
 }
 function formatDate(date) {
 	return (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear()
@@ -118,6 +123,9 @@ function saveButton_clicked() {
 				alert("Your PTO request has been sent!");
 				WAF.sources.pTO_Request.all();
 				reloadPTOs();
+				$("#startDate").val("");
+				$("#endDate").val("");
+				$("textarea").val("");
 //				/**/
 //				WAF.sources.pTO_Request.all({
 //					onSuccess: function (event) {
@@ -179,7 +187,8 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 				
 		}
 		else {
-			loadPTOs();
+			loadPTOs('pending');
+			loadPTOs('approved');
 			$.mobile.changePage("#page6", "slideup");
 		}
 	};// @lock
