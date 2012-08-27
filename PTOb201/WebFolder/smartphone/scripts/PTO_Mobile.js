@@ -26,7 +26,6 @@ function logOutButton_clicked() {
 };
 
 function loadPTOs(ptoStatus) {
-	console.log(ptoStatus);
 	WAF.ds.User.query("fullName = :1",WAF.directory.currentUser().fullName , {
     		autoExpand: "pTO_RequestCollection",
     		onSuccess: function(event) {
@@ -55,11 +54,12 @@ function loadPTOs(ptoStatus) {
                    						+ (requestStatus === "approved" ? 'data-theme="b"' : '') +'><h3>' 
                    						+ formatDate(ptoRequest.firstDayOff.getValue()) + " - " 
                   						+ formatDate(ptoRequest.lastDayOff.getValue())+ "  " 
-                   						+ requestStatus + '</h3><p style="padding-left: 15px;margin: 0">' 
-                   						+ "	PTO hours:" + ptoHours + '</p><p style="padding-left: 15px;margin: 0">'
-                   						+ "	Floating days:" + floatingDays + '</p><p style="padding-left: 15px;margin: 0"">'
-                  						+ '	Return to work at: '+ formatDate(ptoRequest.returnToWorkDate.getValue()) +'</p>'
-                   						+ (ptoRequest.notes.getValue()?'<p style="padding-left: 15px;margin: 0"">	Notes: '+ptoRequest.notes.getValue() +'</p>':"")
+                   						+ requestStatus + '</h3><!--p style="padding-left: 15px;margin: 0"-->' 
+//                   						+ "	PTO hours:" + ptoHours + '</p><p style="padding-left: 15px;margin: 0">'
+//                   						+ "	Floating days:" + floatingDays + '</p><p style="padding-left: 15px;margin: 0"">'
+//                  						+ '	Return to work at: '+ formatDate(ptoRequest.returnToWorkDate.getValue()) +'</p>'
+//                   						+ (ptoRequest.notes.getValue()?'<p style="padding-left: 15px;margin: "">	Notes: '+ptoRequest.notes.getValue() +'</p>':'</p>')
+                   						+'<div class="ui-grid-b" style="width:20%;padding-left:15px;margin: 0"><div class="ui-block-a"><p>PTO hours: <br />Floating days: <br />Return to work at: <br />Notes:</p></div><div class="ui-block-b"><p>'+ptoHours+'<br />'+floatingDays+'<br />'+formatDate(ptoRequest.returnToWorkDate.getValue())+'<br />'+(ptoRequest.notes.getValue()?ptoRequest.notes.getValue():"None")+'</p></div></div>'
                    						+ (ptoStatus == "pending"?'<a style="color:blue;text-align:center;padding-left: 15px" href="" data-theme="a" data-icon="star" data-role="button" onClick="" >Commit This PTO</a>'+ '</div>':""))
                     						.appendTo(ptoStatus == "pending"?$('#collapsibleSet'):('#collapsibleSetForApprovedPTOs'));
                    						$element.collapsible();
