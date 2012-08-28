@@ -59,8 +59,9 @@ function loadPTOs(ptoStatus) {
 //                   						+ "	Floating days:" + floatingDays + '</p><p style="padding-left: 15px;margin: 0"">'
 //                  						+ '	Return to work at: '+ formatDate(ptoRequest.returnToWorkDate.getValue()) +'</p>'
 //                   						+ (ptoRequest.notes.getValue()?'<p style="padding-left: 15px;margin: "">	Notes: '+ptoRequest.notes.getValue() +'</p>':'</p>')
-                   						+'<div class="ui-grid-b" style="width:20%;padding-left:15px;margin: 0"><div class="ui-block-a"><p>PTO hours: <br />Floating days: <br />Return to work at: <br />Notes:</p></div><div class="ui-block-b"><p>'+ptoHours+'<br />'+floatingDays+'<br />'+formatDate(ptoRequest.returnToWorkDate.getValue())+'<br />'+(ptoRequest.notes.getValue()?ptoRequest.notes.getValue():"None")+'</p></div></div>'
-                   						+ (ptoStatus == "pending"?'<a style="color:blue;text-align:center;padding-left: 15px" href="" data-theme="a" data-icon="star" data-role="button" onClick="" >Commit This PTO</a>'+ '</div>':""))
+                   						+'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">PTO hours: <br />Floating days: <br />Return date : <br />Notes:</p></div>'
+                   						+'<div class="ui-block-b"><p style="margin: 0">'+ptoHours+'<br />'+floatingDays+'<br />'+formatDate(ptoRequest.returnToWorkDate.getValue())+'<br />'+(ptoRequest.notes.getValue()?ptoRequest.notes.getValue():"None")+'</p></div></div>'
+                   						+ (ptoStatus == "pending"?'<a style="color:blue;text-align:center;padding-left: 15px" href="" data-theme="a" data-icon="star" data-role="button" onClick="" >Submit This PTO Request</a>'+ '</div>':""))
                     						.appendTo(ptoStatus == "pending"?$('#collapsibleSet'):('#collapsibleSetForApprovedPTOs'));
                    						$element.collapsible();
                						}
@@ -110,7 +111,7 @@ function cancelButton_clicked() {
 function saveButton_clicked() {
 	WAF.sources.pTO_Request.firstDayOff = createDate($("#startDate").val());
 	WAF.sources.pTO_Request.lastDayOff = createDate($("#endDate").val());
-	WAF.sources.pTO_Request.returnToWorkDate = getNextWorkDay(WAF.sources.pTO_Request.lastDayOff);
+	WAF.sources.pTO_Request.returnToWorkDate = getNextWorkDay(createDate($("#endDate").val()));
 	WAF.sources.pTO_Request.notes = $("textarea").val();
 	WAF.sources.pTO_Request.save({
         	onSuccess: function(event) {
@@ -151,6 +152,7 @@ function saveButton_clicked() {
 };
 
 function getNextWorkDay(lastDayOff) {
+	console.log(lastDayOff);
 	if(lastDayOff.getDay() == 5) {
 		//Friday
 		lastDayOff.setDate(lastDayOff.getDate()+3);
@@ -160,6 +162,7 @@ function getNextWorkDay(lastDayOff) {
 	} else {
 		lastDayOff.setDate(lastDayOff.getDate()+1);
 	}
+	console.log(lastDayOff);
 	return(lastDayOff);
 };
 

@@ -55,24 +55,21 @@
         <!-- PTO_Request -->
         <div id="page3" data-role="page">
             <div data-theme="a" data-role="header">
-                <h3>PTO Request</h3>
+                <h3>New PTO Request</h3>
                 <a onclick="cancelButton_clicked()" href="#page6" data-transition="fade" data-role="button" data-icon="delete" class="ui-btn-left">
 					Cancel
                 </a>
-                <a onclick="saveButton_clicked()" href="#page6" data-transition="fade" data-theme="b" data-role="button" data-icon="check" class="ui-btn-right">
-					Done
-				</a>
             </div>
             <div style="padding: 15px" data-role="content">
                 <div data-role="fieldcontain">
-                    <fieldset data-role="controlgroup" data-mini="true">
-                        <label for="startDate">Request Start Date</label>
+                    <fieldset data-role="controlgroup" >
+                        <label for="startDate">Start Date</label>
                         <input value="" type="date" placeholder="2012/08/14" name="" id="startDate"/>
                     </fieldset>
                 </div>
                 <div data-role="fieldcontain">
-                    <fieldset data-role="controlgroup" data-mini="true">
-                        <label for="endDate">Request End Date</label>
+                    <fieldset data-role="controlgroup" >
+                        <label for="endDate">End Date</label>
                         <input value="" type="date" placeholder="2012/08/14" name="" id="endDate"/>
                     </fieldset>
                 </div>
@@ -97,6 +94,9 @@
                         <textarea rows="8" name="textarea" id="textarea" cols="40"></textarea>
                     </fieldset>
                 </div>
+				<a style="position: absolute;left: 20% ;top: 30%;width:30%" onclick="saveButton_clicked()" href="#page6" data-transition="fade" data-theme="b" data-role="button" data-icon="check" >
+					Save the PTO
+				</a>
             </div>
             <div data-theme="a" data-role="tabbar" data-iconpos="top">
                 <ul>
