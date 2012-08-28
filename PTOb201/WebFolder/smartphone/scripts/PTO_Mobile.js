@@ -66,20 +66,24 @@ function loadPTOs(ptoStatus) {
                     						.appendTo(ptoStatus == "pending"?$('#collapsibleSet'):('#collapsibleSetForApprovedPTOs'));
                    						$element.collapsible();
                    						if (ptoStatus == "pending") {
-                   							$(".submit").bind('click', function (event) {
+                   							$(".submit").live('tap', function (event) {
                    						  	     var requestKey = event.target.id; 
-        										 WAF.sources.pTO_Request.selectByKey(requestKey);
-        										 WAF.sources.pTO_Request.status = "commit";
-        										 WAF.sources.pTO_Request.save({
+        										 WAF.sources.pTO_Request.selectByKey(requestKey,{
         										 	onSuccess: function(event) {
-														alert("Your PTO request has been commited!");
-														//WAF.sources.pTO_Request.serverRefresh();
-														reloadPTOs();
-													},
-           											onError: function(error) {
-           												console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
-          											}
-      											});
+														WAF.sources.pTO_Request.status = "requested";
+        										 		WAF.sources.pTO_Request.save({
+        										 			onSuccess: function(event) {
+																alert("Your PTO request has been submitted!");
+																WAF.sources.pTO_Request.all();
+																reloadPTOs();
+															},
+           													onError: function(error) {
+           														console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+          													}
+      													});
+													}
+        										 });
+        										
     										});	
               							}
                						}
@@ -95,6 +99,7 @@ function loadPTOs(ptoStatus) {
 
 function reloadPTOs() {
 	$("#collapsibleSet").empty();
+	$("#collapsibleSetForApprovedPTOs").empty();
 	loadPTOs('pending');
 	loadPTOs('approved');
 }
@@ -139,7 +144,7 @@ function saveButton_clicked() {
 //				} else {
 //					$("#errorDiv1").html("PTO Request Saved.");
 //				}
-				alert("Your PTO request has been sent!");
+				alert("Your PTO request has been created!");
 				WAF.sources.pTO_Request.all();
 				reloadPTOs();
 				$("#startDate").val("");

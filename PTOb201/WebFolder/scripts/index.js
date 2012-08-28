@@ -21,15 +21,33 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 	var documentEvent = {};	// @document
 // @endregion// @endlock
 
-
 //David Robbins Functions - Start
-var today = new Date();
-var dd = today.getDate();
-var mm = today.getMonth()+1; //January is 0!
-var yyyy = today.getFullYear();
+var currentUserIsManagement = false,
+	currentUserIsEmployee = false,
+	today = new Date(),
+	currentPTOPrimaryKey = -1,
+	dd = today.getDate(),
+	mm = today.getMonth()+1, //January is 0!
+	yyyy = today.getFullYear();
 if(dd<10){dd='0'+dd} 
 if(mm<10){mm='0'+mm}
 var myCurrentDate = mm+'/'+dd+'/'+yyyy;
+
+function setMessageValue(message, error) {
+	if (arguments.length === 0) {
+		$$('messagesRichText').setTextColor("#153E7E");
+		message = "";
+	} else if (arguments.length === 1) {
+		$$('messagesRichText').setTextColor("#153E7E");
+	} else if (arguments.length === 2) {
+		$$('messagesRichText').setTextColor("red");
+		//$('#messagesRichText').css("color", "red");
+	} else {
+		$$('messagesRichText').setTextColor("#153E7E");
+	}
+	
+	$$('messagesRichText').setValue(message);
+}
 
 function savePTORequest(message) {
 	if (typeof message !== "undefined") {
@@ -37,27 +55,33 @@ function savePTORequest(message) {
 	}
 	
 	var primKey = WAF.sources.pTO_Request.ID;
-	$("#errorDiv1").html("");
 	WAF.sources.pTO_Request.save({
-        	onSuccess: function(event) {
+    	onSuccess: function(event) {
 			updateUserAccountDisplay();
-			if (event.dataSource.status === "pending") {
-				$("#errorDiv1").html("PTO Request Saved. Double-click any request line item to edit your request.");
+			if (event.dataSource.status === "requested") {
+				setMessageValue("PTO Request Saved. An email has been sent to your manager.");
+			} else if (event.dataSource.status === "pending") {
+				setMessageValue("PTO Request Saved. Double-click line-items to update PTO request.");
 			} else {
-				$("#errorDiv1").html("PTO Request Saved.");
+				setMessageValue("PTO Request Saved.");
 			}
 			/**/
 			WAF.sources.pTO_Request.query(
-				"status !== :1", "closed",
+				"status !== :1 order by firstDayOff", "closed",
 				{
 				onSuccess: function (event) {
-					WAF.sources.pTO_Request.selectByKey(primKey);
-					createEmailAccordian();
-					disableInput();
-			}});	
+					WAF.sources.pTO_Request.selectByKey(primKey, {
+						onSuccess: function(event) {
+							currentPTOPrimaryKey = primKey;
+							createEmailAccordian();
+							disableInput();
+						}
+					});
+				}
+			});	
 		},
            	onError: function(error) {
-           		$('#errorDiv1').html(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+           		setMessageValue(error['error'][0].message + " (" + error['error'][0].errCode + ")", true);
            		//Ask Laurent if serverRefresh supports declareDependencies or autoExpand.
            		WAF.sources.pTO_Request.serverRefresh({forceReload: true});
          		/*
@@ -141,6 +165,19 @@ function updateUserAccountDisplay() {
 	}); // Load their user entity.
 }
 
+function updateHolidayDisplay() {
+	ds.Holiday.all({orderBy:"date", onSuccess:function(event) {
+		event.entityCollection.toArray("name,date", {onSuccess: function(ev) {
+			var arr = ev.result;
+			var myHTML = '';
+			arr.forEach(function(elem) { 
+				myHTML += '<p class="holiday">' + elem.name + " : " + formatDate(ISOToDate(elem.date)) + '</p>';
+			});
+			$('#container5').html('Upcoming 4D Holidays: ' + myHTML);
+		}});
+	}});
+}
+
 function enableInput() {
 	$("#textField3").removeAttr("disabled"); //First Day Off
 	$("#textField4").removeAttr("disabled"); //Last Day Off
@@ -150,24 +187,14 @@ function enableInput() {
 	$$("button7").enable();
 }
 
-function disableInput() { 
-	//$('#container5').html('');
-	//$('#container6').html('');
-	/**/
-	if ((WAF.directory.currentUserBelongsTo("Payroll")) || 
-		(WAF.directory.currentUserBelongsTo("Manager")) ||
-		(WAF.directory.currentUserBelongsTo("Administrator"))) {
-		
+function disableInput() {
+	if (currentUserIsManagement) { 
 		currentPTOUserName = WAF.sources.pTO_Request.getAttribute("requestor.fullName").getValue();
-		
 		if (WAF.directory.currentUser().fullName !== currentPTOUserName) {
 		//Manager is looking at Employee request.
-			//console.log("Employee request: " + currentPTOUserName + " for Manager: " + WAF.directory.currentUser().fullName);
 			$("#textField3").attr("disabled", "disabled"); //First Day Off
 			$("#textField4").attr("disabled", "disabled"); //Last Day Off
 			$("#textField5").attr("disabled", "disabled"); //Return To Work Date
-			//$("#textField8").attr("disabled", "disabled"); //Notes
-			
 			$$("button6").disable();
 			$$("button7").disable();
 			$$("combobox1").disable();
@@ -177,9 +204,7 @@ function disableInput() {
 				$$("combobox2").disable(); //status
 			} else {
 				$$("combobox2").enable(); //status
-			}
-			
-						
+			}			
 		} else {
 		//Manager is looking at their own request.
 			if (WAF.sources.pTO_Request.status !== "pending") {
@@ -201,15 +226,9 @@ function disableInput() {
 			$("#textField3").attr("disabled", "disabled"); //First Day Off
 			$("#textField4").attr("disabled", "disabled"); //Last Day Off
 			$("#textField5").attr("disabled", "disabled"); //Return To Work Date
-		
-			//$("#textField3").removeAttr("disabled"); //First Day Off
-			//$("#textField4").removeAttr("disabled"); //Last Day Off
-			//$("#textField5").removeAttr("disabled"); //Return To Work Date
-			//$("#textField8").removeAttr("disabled"); //Notes
 		}
-		
 	} else {
-		//Employee
+		//Employee is signed in
 		$("#textField3").attr("disabled", "disabled"); //First Day Off
 		$("#textField4").attr("disabled", "disabled"); //Last Day Off
 		$("#textField5").attr("disabled", "disabled"); //Return To Work Date
@@ -390,24 +409,27 @@ function createEmailAccordian() {
 }
 
 function signIn() {
-	$("#errorDiv1").html("");
+	setMessageValue("");
 	$$("signInError").setValue("");
 	if (WAF.directory.loginByPassword(WAF.sources.loginObject.loginName, WAF.sources.loginObject.password)) {
 		statusArray = [];
 		if ((WAF.directory.currentUserBelongsTo("Payroll")) || 
 			(WAF.directory.currentUserBelongsTo("Manager")) ||
-			(WAF.directory.currentUserBelongsTo("Administrator"))) {
+			(WAF.directory.currentUserBelongsTo("Administrator"))) 
+		{
+			currentUserIsManagement = true;
 			statusArray.push({statusName: ''});
 			statusArray.push({statusName: 'pending'});
-			statusArray.push({statusName: 'commit'});
+			statusArray.push({statusName: 'requested'});
 			statusArray.push({statusName: 'approved'});
 			statusArray.push({statusName: 'rejected'});
 			//statusArray.push({statusName: 'returned'});
 			statusArray.push({statusName: 'closed'});
 		} else if (WAF.directory.currentUserBelongsTo("Employee")) {
+			currentUserIsEmployee = true;
 			statusArray.push({statusName: ''});
 			statusArray.push({statusName: 'pending'});
-			statusArray.push({statusName: 'commit'});
+			statusArray.push({statusName: 'requested'});
 		}
 		WAF.sources.statusArray.sync();
 		
@@ -419,30 +441,19 @@ function signIn() {
 		$("#container7").css("top", "-1px");
 		$$("container7").hide();
 		
-		//Load User Account Display
 		updateUserAccountDisplay();
-		
-		ds.Holiday.all({orderBy:"date", onSuccess:function(event) {
-			event.entityCollection.toArray("name,date", {onSuccess: function(ev) {
-				var arr = ev.result;
-				var myHTML = '';
-				arr.forEach(function(elem) { 
-					myHTML += '<p class="holiday">' + elem.name + " : " + formatDate(ISOToDate(elem.date)) + '</p>';
-				});
-				$('#container5').html('Upcoming 4D Holidays:  <br/><br/>' + myHTML);
-			}});
-		}});
+		updateHolidayDisplay();
 		
 		$$("textField1").setValue("");
 		$$("textField2").setValue("");
 		
-		//WAF.sources.pTO_Request.query("status !== :1", "closed");
 		WAF.sources.pTO_Request.query(
-			"status !== :1", "closed",
+			"status !== :1 order by firstDayOff", "closed", 
 			{
 			onSuccess: function(event) {
 				disableInput();
 				createEmailAccordian();
+				currentPTOPrimaryKey = WAF.sources.pTO_Request.ID;
 			}
 		});
 		
@@ -466,15 +477,18 @@ function handleEmailMessageDialog() {
 
 	dataGrid2.onRowClick = function dataGrid2_onRowClick (event)// @startlock
 	{// @endlock
+		currentPTOPrimaryKey = WAF.sources.pTO_Request.ID;
 		disableInput();
-		$("#errorDiv1").html('');
+		//$("#errorDiv1").html('');
+		setMessageValue("");
+		//$$('instuctionsRichText').setValue("");
 		createEmailAccordian();
 	};// @lock
 
 	button12.click = function button12_click (event)// @startlock
 	{// @endlock
 		//ok button for email message dialog.
-		handleEmailMessageDialog()
+		handleEmailMessageDialog();
 	};// @lock
 
 	button5.click = function button5_click (event)// @startlock
@@ -485,31 +499,33 @@ function handleEmailMessageDialog() {
 
 	pTO_RequestEvent.onCurrentElementChange = function pTO_RequestEvent_onCurrentElementChange (event)// @startlock
 	{// @endlock
-		if (!((WAF.directory.currentUserBelongsTo("Payroll")) || 
-			(WAF.directory.currentUserBelongsTo("Manager")) ||
-			(WAF.directory.currentUserBelongsTo("Administrator")))) {
-			
-			if ((waf.sources.pTO_Request.status !== "pending") && (waf.sources.pTO_Request.status !== "commit")) {
+		if (currentUserIsManagement) {
+			$$('combobox2').show();
+			$$('textField10').hide();
+		
+		} else {
+			if ((waf.sources.pTO_Request.status !== "pending") && (waf.sources.pTO_Request.status !== "requested")) {
 				$$('combobox2').hide();
 				$$('textField10').show();
 			} else {
 				$$('combobox2').show();
 				$$('textField10').hide();
 			}
-		} else {
-			$$('combobox2').show();
-			$$('textField10').hide();
 		}
 	};// @lock
 
 	button1.click = function button1_click (event)// @startlock
 	{// @endlock
 		//Cancel Changes to PTO Request
-		$('#errorDiv1').html("");
+		setMessageValue("");
 		var primKey = WAF.sources.pTO_Request.ID;
-		WAF.sources.pTO_Request.all({
-			onSuccess: function (event) {
-				WAF.sources.pTO_Request.selectByKey(primKey);
+		WAF.sources.pTO_Request.query(
+			"status !== :1 order by firstDayOff", "closed",
+			//"status !== 'closed' orderBy firstDayOff",
+			{onSuccess: function (event) {
+				//WAF.sources.pTO_Request.selectByKey(primKey);
+				WAF.sources.pTO_Request.selectByKey(currentPTOPrimaryKey);
+				createEmailAccordian();
 		}});
 		
 	};// @lock
@@ -517,8 +533,10 @@ function handleEmailMessageDialog() {
 	button24.click = function button24_click (event)// @startlock
 	{// @endlock
 		//signout
-		$("#errorDiv1").html("");
+		setMessageValue("");
 		if (WAF.directory.logout()) {
+			currentUserIsManagement = false;
+			currentUserIsEmployee = false;
 			//reset status array
 			statusArray = [];
 			WAF.sources.statusArray.sync();
@@ -539,7 +557,8 @@ function handleEmailMessageDialog() {
 	button23.click = function button23_click (event)// @startlock
 	{// @endlock
 		//change password
-		$("#errorDiv1").html("");
+		//$("#errorDiv1").html("");
+		setMessageValue("");
 		$('#dialog3').css("top", 200);
 		$('#dialog3').css("left", 300);
 		WAF.widgets['dialog3'].displayDialog();
@@ -554,8 +573,10 @@ function handleEmailMessageDialog() {
 	button10.click = function button10_click (event)// @startlock
 	{// @endlock
 		// Save Button
-		if (WAF.sources.pTO_Request.status === "commit") {
+		if (WAF.sources.pTO_Request.status === "requested") {
 			//$('#emailBody').val("");
+			//$$('instuctionsRichText').setValue("");
+			
 			$$('emailBody')._tmpVal = "";
 			$$('emailBody').setValue("");
 			$$('emailMessageDialogTitle').setValue("Enter Message To Be Included in Email to Manager");
@@ -584,6 +605,8 @@ function handleEmailMessageDialog() {
 			//WAF.sources.emailMessageObject.body = "";
 			//WAF.sources.emailMessageObject.sync();
 		} else {
+			//$$('instuctionsRichText').setValue("Double-click line-items to update PTO request.");
+			//setMessageValue("Double-click line-items to update PTO request.");
 			savePTORequest();
 		}
 	};// @lock
@@ -591,7 +614,9 @@ function handleEmailMessageDialog() {
 	button9.click = function button9_click (event)// @startlock
 	{// @endlock
 		// New Request Button
-		$("#errorDiv1").html("Enter your requested days off and hit Save.");
+		//$("#errorDiv1").html("Enter your requested days off and hit Save.");
+		$('#noteDL').children().remove();
+		setMessageValue("");
 		
 		ds.PTO_Request.newPTORequest({
 			autoExpand: "requestor",
@@ -599,6 +624,8 @@ function handleEmailMessageDialog() {
 				enableInput();
 				WAF.sources.pTO_Request.setCurrentEntity(event.result);
 				$$('textField3').focus();
+				//$$('instuctionsRichText').setValue("Enter your first and last day off and click Save to create PTO.");
+				setMessageValue("Enter your first and last day off and click Save to create PTO.");
 			}
 		});
 	};// @lock
@@ -611,16 +638,20 @@ function handleEmailMessageDialog() {
 
 	button7.click = function button7_click (event)// @startlock
 	{// @endlock
-		$("#errorDiv1").html("");
+		//$("#errorDiv1").html("");
+		setMessageValue("");
 		//Request Line Item Detail Save
 		WAF.sources.requestLineItemCollection.save({
         	onSuccess: function(event) {
 				updateUserAccountDisplay();
-				$("#errorDiv1").html("PTO Request Line Item Updated.");
+				//$("#errorDiv1").html("PTO Request Line Item Updated.");
+				setMessageValue("PTO Request Line Item Updated.");
+				//$$('instuctionsRichText').setValue("PTO Request Line Item Updated.");
 				WAF.sources.requestLineItemCollection.serverRefresh({forceReload: true});
 			},
            	onError: function(error) {
-           		$('#errorDiv1').html(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+           		//$('#errorDiv1').html(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+           		setMessageValue(error['error'][0].message + " (" + error['error'][0].errCode + ")", true);
            		WAF.sources.requestLineItemCollection.serverRefresh({forceReload: true});
           	}
       	});
@@ -632,11 +663,13 @@ function handleEmailMessageDialog() {
 		//Request Line Item Detail
 		WAF.sources.requestLineItemCollection.removeCurrent({
 		    onSuccess: function(event) {
-		        $("#errorDiv1").html("Your PTO request line item has been removed and your user account updated.");
+		        //$("#errorDiv1").html("Your PTO request line item has been removed and your user account updated.");
+		        setMessageValue("Your PTO request line item has been removed and your user account updated.");
 		        updateUserAccountDisplay();
 		    },
 		    onError: function(error) {
-		        $("#errorDiv1").html(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+		        //$("#errorDiv1").html(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+		        setMessageValue(error['error'][0].message + " (" + error['error'][0].errCode + ")", true);
 		    }
 		});
 		$$("tabView1").selectTab(1);
@@ -644,13 +677,14 @@ function handleEmailMessageDialog() {
 
 	dataGrid3.onRowDblClick = function dataGrid3_onRowDblClick (event)// @startlock
 	{// @endlock
-		$("#errorDiv1").html("");
+		//$("#errorDiv1").html("");
+		setMessageValue("");
 		$$("tabView1").selectTab(2);
 	};// @lock
 
 	button22.click = function button22_click (event)// @startlock
 	{// @endlock
-		$$('dialog3').closeDialog(); //cancel button
+		$$('dialog3').sialog(); //cancel button
 	};// @lock
 
 	button21.click = function button21_click (event)// @startlock
@@ -664,10 +698,12 @@ function handleEmailMessageDialog() {
 		
 		WAF.ds.User.changePassword({
 			onSuccess: function(event) {
-				$("#errorDiv1").html(event.result.message);
+				//$("#errorDiv1").html(event.result.message);
+				setMessageValue(event.result.message);
 			},
 			onError: function(error) {
-				$("#errorDiv1").html("Error Change Password");
+				//$("#errorDiv1").html("Error Change Password");
+				setMessageValue("Error Changing Password", true);
 			}
 		}, passwordData);
 		
@@ -677,10 +713,9 @@ function handleEmailMessageDialog() {
 	documentEvent.onLoad = function documentEvent_onLoad (event)// @startlock
 	{// @endlock
 		WAF.sources.pTO_Request.declareDependencies("requestor");
-		//WAF.sources.pTO_Request.all();
-		//WAF.sources.pTO_Request.query("status !== :1", "closed");
 		
-		$("#errorDiv1").html("");
+		//$("#errorDiv1").html("");
+		setMessageValue("");
 		$("#textField10").attr("disabled", true);  //Status
 		$("#textField9").attr("disabled", true);  //Name
 		$("#textField7").attr("disabled", true);  //Date Entered
@@ -689,6 +724,8 @@ function handleEmailMessageDialog() {
 		$("#textField8").attr("disabled", "disabled"); //Notes
 		
 		if (WAF.directory.currentUser() === null) {
+			WAF.sources.pTO_Request.setEntityCollection();
+			WAF.sources.pTO_Request1.setEntityCollection();
 			$$("richText2").setValue("");
 			$$("container1").hide();
 			$("#container7").css("top", "80px");
@@ -697,6 +734,23 @@ function handleEmailMessageDialog() {
 			$$("signInContainer").show();
 			$$("signOutContainer").hide();
 		} else {
+			//We have a user signed in.
+			WAF.sources.pTO_Request.query(
+				"status !== :1 order by firstDayOff", "closed",
+				{
+				onSuccess: function(event) {
+					disableInput();
+					createEmailAccordian();
+					currentPTOPrimaryKey = WAF.sources.pTO_Request.ID;
+				}
+			});
+		
+			//Closed PTOs.
+			waf.sources.pTO_Request1.query("status = :1", "closed");
+			
+			updateUserAccountDisplay();
+			updateHolidayDisplay();
+		
 			$$("richText2").setValue("Signed in as : " + WAF.directory.currentUser().fullName);
 			$$("container1").show();
 			$("#container7").css("top", "-1px");

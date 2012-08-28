@@ -21,7 +21,9 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 		
 		waf.ds.RequestLineItem.getCalendarArray({
 			onSuccess: function(event) {
+				console.log(event.result);
 				$('#calendar').fullCalendar({
+					
        				 // put your options and callbacks here
        				height: 650,
         			weekends: true, // will hide Saturdays and Sundays

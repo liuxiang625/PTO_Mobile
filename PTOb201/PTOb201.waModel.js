@@ -267,10 +267,10 @@ guidedModel =// @startlock
 				var statusArray = [];
 				
 				if (currentSession().belongsTo("Payroll") || currentSession().belongsTo("Manager") || currentSession().belongsTo("Administrator")) {
-					statusArray = [{statusName: ""}, {statusName: "pending"}, {statusName: "commit"}, {statusName: "approved"}, {statusName: "returned"}];
+					statusArray = [{statusName: ""}, {statusName: "pending"}, {statusName: "requested"}, {statusName: "approved"}, {statusName: "returned"}];
 				} else if (currentSession().belongsTo("Employee")) {
-					statusArray = [{statusName: ""}, {statusName: "pending"}, {statusName: "commit"}];
-					if ((this.status !== "pending") && (this.status !== "commit")) {
+					statusArray = [{statusName: ""}, {statusName: "pending"}, {statusName: "requested"}];
+					if ((this.status !== "pending") && (this.status !== "requested")) {
 						var myNewStatusObj = {statusName: ""};
 						myNewStatusObj.statusName = this.status;
 						statusArray.push(myNewStatusObj);
@@ -281,7 +281,7 @@ guidedModel =// @startlock
 				
 				
 				//var statusArray = [];
-				//statusArray = [{statusName: "VV"}, {statusName: "pending"}, {statusName: "commit"}];
+				//statusArray = [{statusName: "VV"}, {statusName: "pending"}, {statusName: "requested"}];
 				//return {dave: "robbins"};
 				//return statusArray;
 				//return this.status;
@@ -305,9 +305,9 @@ guidedModel =// @startlock
 				var statusArray = [];
 				
 				if (currentSession().belongsTo("Payroll") || currentSession().belongsTo("Manager") || currentSession().belongsTo("Administrator")) {
-					statusArray = [{statusName: ""}, {statusName: "pending"}, {statusName: "commit"}, {statusName: "approved"}, {statusName: "returned"}];
+					statusArray = [{statusName: ""}, {statusName: "pending"}, {statusName: "requested"}, {statusName: "approved"}, {statusName: "returned"}];
 				} else if  (currentSession().belongsTo("Employee")) {
-					statusArray = [{statusName: ""}, {statusName: "pending"}, {statusName: "commit"}];
+					statusArray = [{statusName: ""}, {statusName: "pending"}, {statusName: "requested"}];
 				}
 				
 				//return [{statusName: ""}, {statusName: "pending"}, {statusName: "commmit"}, {statusName: "approved"}];
@@ -341,7 +341,8 @@ guidedModel =// @startlock
 					sessionRef.unPromote(promoteToken); //put the session back to normal.
 					
 					if (myUser !== null) {
-						if (myUser.accessLevel < 4) {
+						//if (myUser.accessLevel < 4) {
+						if (myUser.role === "Manager" || myUser.role === "Payroll") {
 							result = ds.PTO_Request.query("requestor.myManager.login = :1 and status !== :2", myCurrentUser.name, "pending");
 							theManagerPTOs = ds.PTO_Request.query("requestor.login = :1", currentUser().name);
 							result = result.add(theManagerPTOs);
@@ -359,28 +360,18 @@ guidedModel =// @startlock
 			},// @startlock
 			onSave:function()
 			{// @endlock
-				var myCurrentUser = currentUser(); // Get the current user
-				var myUser = ds.User.find("ID = :1", myCurrentUser.ID); // Load their user entity.
-				var the4DHolidays = ds.Holiday.all();
-				var numberOf4DHolidays = the4DHolidays.length;
-				var myDayPointer = this.firstDayOff;
-				var myLastDay = this.lastDayOff;
-				var theDayNumber;
-				var hours;
-				
-				var theClass = this.getDataClass(); //get the dataclass of the entity to save
-				var theClassName = theClass.getName(); //get the dataclass name
-				var oldEntity = theClass(this.getKey()); //find the same entity on disk
-				
-				/*
-				dateCompare = dates.compare(firstDayOff, currentDate);
-						if (dateCompare < 0) {
-							
-				+
-				*/
-				
+				var myCurrentUser = currentUser(), // Get the current user
+				myUser = ds.User.find("ID = :1", myCurrentUser.ID), // Load their user entity.
+				the4DHolidays = ds.Holiday.all(),
+				numberOf4DHolidays = the4DHolidays.length,
+				myDayPointer = this.firstDayOff,
+				myLastDay = this.lastDayOff,
+				theDayNumber,
+				hours,
+				theClass = this.getDataClass(), //get the dataclass of the entity to save
+				theClassName = theClass.getName(), //get the dataclass name
+				oldEntity = theClass(this.getKey()), //find the same entity on disk
 				vacationDateCompare = dates.compare(this.firstDayOff, this.lastDayOff);
-				
 				
 				if ((myUser !== null) && (this.isNew())) {
 					//if (myLastDay != null) {
@@ -395,7 +386,10 @@ guidedModel =// @startlock
 					} else { //Requesting One Day Off.
 						theDayNumber = myDayPointer.getDay();
 						if ((theDayNumber > 0) && (theDayNumber < 6) && (!is4DHoliday(myDayPointer))){
-								addPTOLineItem(this, myUser, myDayPointer);
+							addPTOLineItem(this, myUser, myDayPointer);
+						} else {
+							//can i reject this
+							return {error: 10455, errorMessage: "You don't need to request PTO. This day is a holiday."};
 						}
 					} //(myLastDay != null)
 				}//(myUser !== null)				
@@ -408,7 +402,7 @@ guidedModel =// @startlock
 				/**/
 				//Employee send email to manager for approval.
 				if ((myUser !== null) && (!this.isNew())) {
-					if ((this.status === "commit") && (oldEntity.status !== "commit")) {
+					if ((this.status === "requested") && (oldEntity.status !== "requested")) {
 						//Put request line items in an array.
 						var requestLineItemsArray = [];
 						var lineItems = this.requestLineItemCollection;
@@ -433,15 +427,6 @@ guidedModel =// @startlock
 								//requestLineItems: [{name: "dave"}, {name: "tom"}, {name: "bill"}]
 						});
 						
-						/*
-						if (this.notes === null) {
-							this.notes = "";
-						}
-						this.notes += formatDate(new Date()) + " " + myUser.fullName;
-						this.notes += this.emailText;
-						//this.notes = "";
-						*/
-						
 						new ds.Note({ 
 							date: new Date(),
 							title: "PTO Request from " + this.requestor.fullName + " submitted to Manager.",
@@ -449,14 +434,14 @@ guidedModel =// @startlock
 							date: new Date(),
 							pto: this
 						}).save();
-					}//((this.status === "commit") && (oldEntity.status !== "commit"))
+					}//((this.status === "requested") && (oldEntity.status !== "requested"))
 					
 					//Manager send email to employee
 					var sendEmaiToManager = false;
-					if ((this.status === "approved") && (oldEntity.status === "commit")) {
+					if ((this.status === "approved") && (oldEntity.status === "requested")) {
 						sendEmaiToManager = true;
 					}
-					if ((this.status === "rejected") && (oldEntity.status === "commit")) {
+					if ((this.status === "rejected") && (oldEntity.status === "requested")) {
 						sendEmaiToManager = true;
 					}
 					//if ((this.status === "approved") && (oldEntity.status !== "approved")) {
@@ -530,6 +515,7 @@ guidedModel =// @startlock
 			},// @startlock
 			onValidate:function()
 			{// @endlock
+				//is4DHoliday
 				var err;
 				var theClass = this.getDataClass(); //get the dataclass of the entity to save
 				var theClassName = theClass.getName(); //get the dataclass name
@@ -537,6 +523,7 @@ guidedModel =// @startlock
 				var sessionRef = currentSession(); // Get session.
 				var myCurrentUser = currentUser(); // Get the current user.
 				var myUserV = ds.User.find("ID = :1", myCurrentUser.ID);
+				
 				
 				if (sessionRef.belongsTo("Administrator")) {
 					err = { error : 3099, errorMessage: "The Administrator is not allowed to update PTO requests."};
@@ -550,6 +537,11 @@ guidedModel =// @startlock
 					//Let's think about status June 29 2012
 					if ((oldEntity.status === "closed") || (oldEntity.status === "rejected")) {
 						err = { error : 4011, errorMessage: "You do not have permission to update a closed PTO request."};
+						return err;	
+					}
+					
+					if (this.status === "pending") {
+						err = { error : 4012, errorMessage: "You cannot change an employee request to pending."};
 						return err;	
 					}
 					
@@ -603,7 +595,7 @@ guidedModel =// @startlock
 						return err;
 					}
 					
-					if (!((this.status === "pending") || (this.status === "commit"))) {
+					if (!((this.status === "pending") || (this.status === "requested"))) {
 						err = { error : 2006, errorMessage: "Invalid status."};
 						return err;
 					}
@@ -661,7 +653,7 @@ guidedModel =// @startlock
 								return err;	
 							} else { 
 								//current status is pending
-								if (this.status !== "commit") {
+								if (this.status !== "requested") {
 									err = { error : 2007, errorMessage: "You do not have permission to change the status."};
 									return err;	
 								} 
@@ -704,6 +696,15 @@ guidedModel =// @startlock
 					
 					//Only for new requests
 					if (this.isNew()) {
+						//Requesting One Day and it's a holiday?
+						dateCompare = dates.compare(firstDayOff, currentDate);
+						if (dateCompare === 0) {
+							if (is4DHoliday(firstDayOff)) {
+								err = { error : 2065, errorMessage: "You don't need to take PTO. This day is a holiday." };
+								return err;	
+							}
+						}
+						
 						//Has the first day requested already past?
 						dateCompare = dates.compare(firstDayOff, currentDate);
 						if (dateCompare < 0) {

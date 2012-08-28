@@ -11,7 +11,6 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 	var button14 = {};	// @button
 	var button13 = {};	// @button
 	var button4 = {};	// @button
-	var combobox1 = {};	// @combobox
 	var documentEvent = {};	// @document
 // @endregion// @endlock
 
@@ -20,7 +19,8 @@ function signIn() {
 		WAF.sources.user.all();
 		WAF.sources.holiday.all();
 		//WAF.sources.user1.all();
-		WAF.sources.user1.query("accessLevel = 3");
+		//WAF.sources.user1.query("accessLevel = 3");
+		WAF.sources.user1.query("role = 'Manager' || role = 'Payroll'");
 		
 		
 		if (WAF.directory.currentUserBelongsTo("Administrator")) {
@@ -84,6 +84,8 @@ function signIn() {
 
 	button18.click = function button18_click (event)// @startlock
 	{// @endlock
+		waf.sources.user.myManager.set(waf.sources.user1);
+		waf.sources.user.serverRefresh();
 		$$('dialog2').closeDialog(); //ok button
 	};// @lock
 
@@ -106,8 +108,9 @@ function signIn() {
 	{// @endlock
 		$$('dialog1').closeDialog(); //ok button
 		//Red Alert red Alert - Move this logic to the server!!!!!!!!!!!!!!!!!
-		switch (WAF.sources.user.accessLevel) {
-			case 3: //Manager
+		//switch (WAF.sources.user.accessLevel) {
+		switch (WAF.sources.user.role) {
+			case "Manager": //Manager
 			var employeeCount;
 			var employeeCollection = WAF.ds.User.query("myManager.ID = " + WAF.sources.user.ID, {
 				onSuccess: function(event) {
@@ -133,7 +136,7 @@ function signIn() {
 			});
 			break;
 			
-			case 4: //Employee
+			case "Employee": //Employee
 			var ptoCount;
 			var currentUserPTOCollection = WAF.ds.PTO_Request.query("requestor.ID = " + WAF.sources.user.ID, {
 				onSuccess: function(event) {
@@ -172,15 +175,15 @@ function signIn() {
 		});
 	};// @lock
 
-	combobox1.change = function combobox1_change (event)// @startlock
-	{// @endlock
-		var managerName = WAF.sources.user1.fullName;
-		WAF.sources.user.myManager.set(WAF.sources.user1);
-		$("#textField13").val(WAF.sources.user1.fullName);
-	};// @lock
-
 	documentEvent.onLoad = function documentEvent_onLoad (event)// @startlock
 	{// @endlock
+		
+		roleArray = [];
+		roleArray.push({title: 'Employee'});
+		roleArray.push({title: 'Manager'});
+		roleArray.push({title: 'Payroll'});
+		roleArray.push({title: 'Admin'});
+		WAF.sources.roleArray.sync();
 
 		if (WAF.directory.currentUser() === null) {
 			$$("richText1").setValue("");
@@ -216,7 +219,6 @@ function signIn() {
 	WAF.addListener("button14", "click", button14.click, "WAF");
 	WAF.addListener("button13", "click", button13.click, "WAF");
 	WAF.addListener("button4", "click", button4.click, "WAF");
-	WAF.addListener("combobox1", "change", combobox1.change, "WAF");
 	WAF.addListener("document", "onLoad", documentEvent.onLoad, "WAF");
 // @endregion
 };// @endlock
