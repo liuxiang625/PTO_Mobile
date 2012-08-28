@@ -37,6 +37,7 @@ function loadPTOs(ptoStatus) {
     							onSuccess: function(eventRelPTO) {
     							var ptoRequest = eventRelPTO.entity;
     							var requestStatus = ptoRequest.status.getValue();
+    							var requestID = ptoRequest.ID.getValue();
     							// Call server side method which returns the requestLineItems
 								var requestLineItems = ptoRequest.getLineItemsRange(ptoRequest.firstDayOff.getValue(), ptoRequest.returnToWorkDate.getValue());
 									//if (requestStatus != "commit") {
@@ -54,16 +55,32 @@ function loadPTOs(ptoStatus) {
                    						+ (requestStatus === "approved" ? 'data-theme="b"' : '') +'><h3>' 
                    						+ formatDate(ptoRequest.firstDayOff.getValue()) + " - " 
                   						+ formatDate(ptoRequest.lastDayOff.getValue())+ "  " 
-                   						+ requestStatus + '</h3><!--p style="padding-left: 15px;margin: 0"-->' 
+                   						+ requestStatus + '</h3>' //<!--p style="padding-left: 15px;margin: 0"-->
 //                   						+ "	PTO hours:" + ptoHours + '</p><p style="padding-left: 15px;margin: 0">'
 //                   						+ "	Floating days:" + floatingDays + '</p><p style="padding-left: 15px;margin: 0"">'
 //                  						+ '	Return to work at: '+ formatDate(ptoRequest.returnToWorkDate.getValue()) +'</p>'
 //                   						+ (ptoRequest.notes.getValue()?'<p style="padding-left: 15px;margin: "">	Notes: '+ptoRequest.notes.getValue() +'</p>':'</p>')
                    						+'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">PTO hours: <br />Floating days: <br />Return date : <br />Notes:</p></div>'
                    						+'<div class="ui-block-b"><p style="margin: 0">'+ptoHours+'<br />'+floatingDays+'<br />'+formatDate(ptoRequest.returnToWorkDate.getValue())+'<br />'+(ptoRequest.notes.getValue()?ptoRequest.notes.getValue():"None")+'</p></div></div>'
-                   						+ (ptoStatus == "pending"?'<a style="color:blue;text-align:center;padding-left: 15px" href="" data-theme="a" data-icon="star" data-role="button" onClick="" >Submit This PTO Request</a>'+ '</div>':""))
+                   						+ (ptoStatus == "pending"?'<a class="submit" id="'+ requestID +'"style="color:blue;text-align:center;padding-left: 15px" href="" data-theme="a" data-inline="true" data-role="button" onclick="submitPTO()" >Submit This PTO Request</a>'+ '</div>':"</div>"))
                     						.appendTo(ptoStatus == "pending"?$('#collapsibleSet'):('#collapsibleSetForApprovedPTOs'));
                    						$element.collapsible();
+                   						$(".submit").bind('click', function (event) {
+        									 WAF.sources.pTO_Request.selectByKey(event.target.id);
+        									 WAF.sources.pTO_Request.status = "commit";
+        									 WAF.sources.pTO_Request.save({
+        									 	onSuccess: function(event) {
+													alert("Your PTO request has been commited!");
+													WAF.sources.pTO_Request.all();
+													reloadPTOs();
+												},
+           										onError: function(error) {
+           											console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+          										}
+      	
+				
+      										});
+    									});	
                						}
 								}
     						});
@@ -166,6 +183,25 @@ function getNextWorkDay(lastDayOff) {
 	return(lastDayOff);
 };
 
+
+
+function submitPTO() {
+	
+
+//	ptoRequest.status = "commit";
+//	ptoRequest.save({
+//		onSuccess: function(event) {
+//				alert("Your PTO request has been commited!");
+//				WAF.sources.pTO_Request.all();
+//				reloadPTOs();
+//			},
+//           	onError: function(error) {
+//           		console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+//          	}
+//      	
+//				
+//      	});
+}
 WAF.onAfterInit = function onAfterInit() {// @lock
 
 // @region namespaceDeclaration// @startlock
