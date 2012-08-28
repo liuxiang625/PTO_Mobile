@@ -62,25 +62,26 @@ function loadPTOs(ptoStatus) {
 //                   						+ (ptoRequest.notes.getValue()?'<p style="padding-left: 15px;margin: "">	Notes: '+ptoRequest.notes.getValue() +'</p>':'</p>')
                    						+'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">PTO hours: <br />Floating days: <br />Return date : <br />Notes:</p></div>'
                    						+'<div class="ui-block-b"><p style="margin: 0">'+ptoHours+'<br />'+floatingDays+'<br />'+formatDate(ptoRequest.returnToWorkDate.getValue())+'<br />'+(ptoRequest.notes.getValue()?ptoRequest.notes.getValue():"None")+'</p></div></div>'
-                   						+ (ptoStatus == "pending"?'<a class="submit" id="'+ requestID +'"style="color:blue;text-align:center;padding-left: 15px" href="" data-theme="a" data-inline="true" data-role="button" onclick="submitPTO()" >Submit This PTO Request</a>'+ '</div>':"</div>"))
+                   						+ (ptoStatus == "pending"?'<a class="submit" id="'+ requestID +'"style="color:blue;text-align:center;padding-left: 15px" href="" data-theme="a" data-inline="true" data-role="button"  >Submit This PTO Request</a>'+ '</div>':'</div>'))
                     						.appendTo(ptoStatus == "pending"?$('#collapsibleSet'):('#collapsibleSetForApprovedPTOs'));
                    						$element.collapsible();
-                   						$(".submit").bind('click', function (event) {
-        									 WAF.sources.pTO_Request.selectByKey(event.target.id);
-        									 WAF.sources.pTO_Request.status = "commit";
-        									 WAF.sources.pTO_Request.save({
-        									 	onSuccess: function(event) {
-													alert("Your PTO request has been commited!");
-													WAF.sources.pTO_Request.all();
-													reloadPTOs();
-												},
-           										onError: function(error) {
-           											console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
-          										}
-      	
-				
-      										});
-    									});	
+                   						if (ptoStatus == "pending") {
+                   							$(".submit").bind('click', function (event) {
+                   						  	     var requestKey = event.target.id; 
+        										 WAF.sources.pTO_Request.selectByKey(requestKey);
+        										 WAF.sources.pTO_Request.status = "commit";
+        										 WAF.sources.pTO_Request.save({
+        										 	onSuccess: function(event) {
+														alert("Your PTO request has been commited!");
+														//WAF.sources.pTO_Request.serverRefresh();
+														reloadPTOs();
+													},
+           											onError: function(error) {
+           												console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+          											}
+      											});
+    										});	
+              							}
                						}
 								}
     						});
@@ -184,24 +185,6 @@ function getNextWorkDay(lastDayOff) {
 };
 
 
-
-function submitPTO() {
-	
-
-//	ptoRequest.status = "commit";
-//	ptoRequest.save({
-//		onSuccess: function(event) {
-//				alert("Your PTO request has been commited!");
-//				WAF.sources.pTO_Request.all();
-//				reloadPTOs();
-//			},
-//           	onError: function(error) {
-//           		console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
-//          	}
-//      	
-//				
-//      	});
-}
 WAF.onAfterInit = function onAfterInit() {// @lock
 
 // @region namespaceDeclaration// @startlock
