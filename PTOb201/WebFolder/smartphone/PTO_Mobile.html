@@ -62,13 +62,13 @@
             </div>
             <div style="padding: 15px" data-role="content">
                 <div data-role="fieldcontain">
-                    <fieldset data-role="controlgroup" >
+                    <fieldset data-role="controlgroup">
                         <label for="startDate">Start Date</label>
                         <input value="" type="date" placeholder="2012/08/14" name="" id="startDate"/>
                     </fieldset>
                 </div>
                 <div data-role="fieldcontain">
-                    <fieldset data-role="controlgroup" >
+                    <fieldset data-role="controlgroup">
                         <label for="endDate">End Date</label>
                         <input value="" type="date" placeholder="2012/08/14" name="" id="endDate"/>
                     </fieldset>
@@ -76,11 +76,11 @@
                 <!--<div data-role="fieldcontain">
                     <fieldset data-type="horizontal" data-role="controlgroup" data-mini="true">
                         <legend>
-                            Request Type
+                            Request Type:
                         </legend>
                         <input value="Floating Holiday" type="radio" name="radiobuttons1" id="radio1"/>
                         <label for="radio1">
-                            Floating Holiday
+                            Floating Holiday:
                         </label>
                         <input value="PTO" type="radio" name="radiobuttons1" id="radio2"/>
                         <label for="radio2">
@@ -94,10 +94,11 @@
                         <textarea rows="8" name="textarea" id="textarea" cols="40"></textarea>
                     </fieldset>
                 </div>
-				<a style="position: absolute;left: 20% ;top: 30%;width:30%" onclick="saveButton_clicked()" href="#page6" data-transition="fade" data-theme="b" data-role="button" data-icon="check" >
+				<a style="position: absolute;left: 20% ;top: 30%;width:30%" onclick="saveButton_clicked()"  data-transition="fade" data-theme="b" data-role="button" data-icon="check">
 					Save the PTO
 				</a>
             </div>
+			<div style="color:red;text-align:center" id="errorlog"></div>
             <div data-theme="a" data-role="tabbar" data-iconpos="top">
                 <ul>
                    <li>
@@ -118,7 +119,7 @@
                 </ul>
             </div>
         </div>
-        <!-- Approved PTO_Status -->
+        <!-- Pending PTO_Status -->
         <div id="page6" data-role="page">
             <div data-theme="a" data-role="header">
                 <h3>Pending PTOs</h3>
@@ -131,7 +132,7 @@
             </div>
             <div>
                 <!--style="padding: 15px" data-role="content"-->
-                <div id="collapsibleSet" data-theme="" data-role="collapsible-set" data-content-theme=""></div>
+                <div  id="collapsibleSet"  data-role="collapsible-set" ></div>
             </div>
             <div data-theme="a" data-role="tabbar" data-iconpos="top">
                 <ul>
@@ -153,7 +154,7 @@
                 </ul>
             </div>
         </div>
-		<!-- Pending PTO_Status -->
+		<!-- Approved PTO_Status -->
         <div id="page2" data-role="page">
             <div data-theme="a" data-role="header">
                 <h3>Approved PTOs</h3>

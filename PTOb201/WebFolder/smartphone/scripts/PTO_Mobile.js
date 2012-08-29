@@ -16,7 +16,7 @@ function logOutButton_clicked() {
 		$("#textinput1").val("");
 		$("#textinput2").val("");
 		$("#collapsibleSet").empty();// get rid of generated collapsibles
-	
+		$("#collapsibleSetForApprovedPTOs").empty();
 	}
 	else {
 		event.preventDefault();
@@ -51,8 +51,8 @@ function loadPTOs(ptoStatus) {
 												(!theHours & ev3.entity.compensation.getValue()== "Floating Day"? floatingDays += 1: floatingDays += 0);
 											}
 										});
-               							var $element = $('<div data-role="collapsible" data-collapsed="true" style="background: #ddd" '
-                   						+ (requestStatus === "approved" ? 'data-theme="b"' : '') +'><h3>' 
+               							var $element = $('<div  data-role="collapsible" data-collapsed="true" style="background: #ddd" '
+                   						 +'><h3>' 
                    						+ formatDate(ptoRequest.firstDayOff.getValue()) + " - " 
                   						+ formatDate(ptoRequest.lastDayOff.getValue())+ "  " 
                    						+ requestStatus + '</h3>' //<!--p style="padding-left: 15px;margin: 0"-->
@@ -60,9 +60,9 @@ function loadPTOs(ptoStatus) {
 //                   						+ "	Floating days:" + floatingDays + '</p><p style="padding-left: 15px;margin: 0"">'
 //                  						+ '	Return to work at: '+ formatDate(ptoRequest.returnToWorkDate.getValue()) +'</p>'
 //                   						+ (ptoRequest.notes.getValue()?'<p style="padding-left: 15px;margin: "">	Notes: '+ptoRequest.notes.getValue() +'</p>':'</p>')
-                   						+'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">PTO hours: <br />Floating days: <br />Return date : <br />Notes:</p></div>'
+                   						+'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">PTO hours: <br />Floating days: <br />Return date: <br />Notes:</p></div>'
                    						+'<div class="ui-block-b"><p style="margin: 0">'+ptoHours+'<br />'+floatingDays+'<br />'+formatDate(ptoRequest.returnToWorkDate.getValue())+'<br />'+(ptoRequest.notes.getValue()?ptoRequest.notes.getValue():"None")+'</p></div></div>'
-                   						+ (ptoStatus == "pending"?'<a class="submit" id="'+ requestID +'"style="color:blue;text-align:center;padding-left: 15px" href="" data-theme="a" data-inline="true" data-role="button"  >Submit This PTO Request</a>'+ '</div>':'</div>'))
+                   						+ (ptoStatus == "pending"?'<div  style="padding-right:15px;padding-left:15px;margin: 0" class="ui-collapsible ui-collapsible-inset ui-collapsible-collapsed" data-content-theme="c" data-theme="b" data-role="collapsible"><h3 class="ui-collapsible-heading ui-collapsible-heading-collapsed"><a class=" ui-collapsible-heading-toggle ui-btn ui-fullsize ui-btn-icon-left ui-corner-top ui-corner-bottom ui-btn-up-b ui-btn-hover-b" href="#" data-corners="false" data-shadow="false" data-iconshadow="true" data-wrapperels="span" data-icon="plus" data-iconpos="left" data-theme="c" data-mini="true" style="text-align:center"><span id="'+ requestID +'"  class=" submit ui-btn-inner ui-corner-top ui-corner-bottom"><span class="ui-btn-text">Submit This Request</span></a></h3></div>':'</div>'))
                     						.appendTo(ptoStatus == "pending"?$('#collapsibleSet'):('#collapsibleSetForApprovedPTOs'));
                    						$element.collapsible();
                    						if (ptoStatus == "pending") {
@@ -150,6 +150,7 @@ function saveButton_clicked() {
 				$("#startDate").val("");
 				$("#endDate").val("");
 				$("textarea").val("");
+				$.mobile.changePage("#page6", "flip");
 //				/**/
 //				WAF.sources.pTO_Request.all({
 //					onSuccess: function (event) {
@@ -162,6 +163,8 @@ function saveButton_clicked() {
 //           		$('#errorDiv1').html(error['error'][0].message + " (" + error['error'][0].errCode + ")");
            		//Ask Laurent if serverRefresh supports declareDependencies or autoExpand.
            		console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+           		$('#errorlog > div').remove();
+        		$('<div></div>').append(error['error'][0].message + " (" + error['error'][0].errCode + ")").appendTo('#errorlog');
          		/*
            		WAF.sources.pTO_Request.all({
 					onSuccess: function (event) {
