@@ -65,27 +65,10 @@ function loadPTOs(ptoStatus) {
                    						+ (ptoStatus == "pending"?'<div  style="padding-right:15px;padding-left:15px;margin: 0" class="ui-collapsible ui-collapsible-inset ui-collapsible-collapsed" data-content-theme="c" data-theme="b" data-role="collapsible"><h3 class="ui-collapsible-heading ui-collapsible-heading-collapsed"><a class=" ui-collapsible-heading-toggle ui-btn ui-fullsize ui-btn-icon-left ui-corner-top ui-corner-bottom ui-btn-up-b ui-btn-hover-b" href="#" data-corners="false" data-shadow="false" data-iconshadow="true" data-wrapperels="span" data-icon="plus" data-iconpos="left" data-theme="c" data-mini="true" style="text-align:center"><span id="'+ requestID +'"  class=" submit ui-btn-inner ui-corner-top ui-corner-bottom"><span class="ui-btn-text">Submit This Request</span></a></h3></div>':'</div>'))
                     						.appendTo(ptoStatus == "pending"?$('#collapsibleSet'):('#collapsibleSetForApprovedPTOs'));
                    						$element.collapsible();
-                   						if (ptoStatus == "pending") {
-                   							$(".submit").live('tap', function (event) {
-                   						  	     var requestKey = event.target.id; 
-        										 WAF.sources.pTO_Request.selectByKey(requestKey,{
-        										 	onSuccess: function(event) {
-														WAF.sources.pTO_Request.status = "requested";
-        										 		WAF.sources.pTO_Request.save({
-        										 			onSuccess: function(event) {
-																alert("Your PTO request has been submitted!");
-																WAF.sources.pTO_Request.all();
-																reloadPTOs();
-															},
-           													onError: function(error) {
-           														console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
-          													}
-      													});
-													}
-        										 });
-        										
-    										});	
-              							}
+//                   						if (ptoStatus == "pending") {
+//                   							$(".submit").die();//get rid of previous added event handlers, so the eventhandler is unique
+//                   							
+//              							}
                						}
 								}
     						});
@@ -129,6 +112,7 @@ function cancelButton_clicked() {
 		$("#startDate").val("");
 		$("#endDate").val("");
 		$("textarea").val("");
+		$('#errorlog > div').remove();
 }
 
 function saveButton_clicked() {
@@ -150,7 +134,8 @@ function saveButton_clicked() {
 				$("#startDate").val("");
 				$("#endDate").val("");
 				$("textarea").val("");
-				$.mobile.changePage("#page6", "flip");
+				$('#errorlog > div').remove();
+				$.mobile.changePage("#page6", "slide");
 //				/**/
 //				WAF.sources.pTO_Request.all({
 //					onSuccess: function (event) {
@@ -200,7 +185,25 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 // @endregion// @endlock
 
 // eventHandlers// @lock
-
+	$(".submit").live('tap', function (event) {
+                   						  	     var requestKey = this.id; 
+        										 WAF.sources.pTO_Request.selectByKey(requestKey,{
+        										 	onSuccess: function(event) {
+														WAF.sources.pTO_Request.status = "requested";
+        										 		WAF.sources.pTO_Request.save({
+        										 			onSuccess: function(event) {
+																alert("Your PTO request has been submitted!");
+																reloadPTOs();
+															},
+           													onError: function(error) {
+           														console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+          													}
+      													});
+													}
+        										 });
+        										
+    										});	
+    										
 	documentEvent.onLoad = function documentEvent_onLoad (event)// @startlock
 	{// @endlock
 //		 var dates = $('#startDate, #endDate').datepicker({
@@ -211,7 +214,7 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 ////                dates.not(this).datepicker('option', option, $(this).datepicker('getDate'));
 ////         	}
 //    	});
-
+		
 		if (WAF.directory.currentUser() === null) {
 				$.mobile.changePage("#page1", "slideup");
 				
