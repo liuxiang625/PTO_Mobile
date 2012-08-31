@@ -26,6 +26,16 @@ function logOutButton_clicked() {
 };
 
 function loadPTOs(ptoStatus) {
+	var holidaysArray = [];
+    ds.Holiday.all({orderBy:"date", onSuccess:function(event) {
+		event.entityCollection.toArray("name,date", {onSuccess: function(ev) {
+		holidaysArray = ev.result;
+//												var myHTML = '';
+//												arr.forEach(function(elem) { 
+//													myHTML += '<p class="holiday">' + elem.name + " : " + formatDate(ISOToDate(elem.date)) + '</p>';
+//												});
+//												$('#container5').html('Upcoming 4D Holidays: ' + myHTML);
+		
 	WAF.ds.User.query("fullName = :1",WAF.directory.currentUser().fullName , {
     		autoExpand: "pTO_RequestCollection",
     		onSuccess: function(event) {
@@ -44,6 +54,8 @@ function loadPTOs(ptoStatus) {
 										if (requestStatus == ptoStatus) {
 										var ptoHours = 0;
 										var floatingDays = 0; 
+										var holiday = formatDate(ISOToDate(holidaysArray[0].date));
+										var lastDayOff = formatDate(ptoRequest.lastDayOff.getValue());
 										requestLineItems.forEach({
 											onSuccess: function(ev3) {
 												var theHours = ev3.entity.hoursRequested.getValue();
@@ -54,21 +66,32 @@ function loadPTOs(ptoStatus) {
                							var $element = $('<div  data-role="collapsible" data-collapsed="true" style="background: #ddd" '
                    						 +'><h3>' 
                    						+ formatDate(ptoRequest.firstDayOff.getValue()) + " - " 
-                  						+ formatDate(ptoRequest.lastDayOff.getValue())+ "  " 
+                  						+ lastDayOff + "  PTO " 
                    						+ requestStatus + '</h3>' //<!--p style="padding-left: 15px;margin: 0"-->
-//                   						+ "	PTO hours:" + ptoHours + '</p><p style="padding-left: 15px;margin: 0">'
-//                   						+ "	Floating days:" + floatingDays + '</p><p style="padding-left: 15px;margin: 0"">'
-//                  						+ '	Return to work at: '+ formatDate(ptoRequest.returnToWorkDate.getValue()) +'</p>'
-//                   						+ (ptoRequest.notes.getValue()?'<p style="padding-left: 15px;margin: "">	Notes: '+ptoRequest.notes.getValue() +'</p>':'</p>')
                    						+'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">PTO hours: <br />Floating days: <br />Return date: <br />Notes:</p></div>'
                    						+'<div class="ui-block-b"><p style="margin: 0">'+ptoHours+'<br />'+floatingDays+'<br />'+formatDate(ptoRequest.returnToWorkDate.getValue())+'<br />'+(ptoRequest.notes.getValue()?ptoRequest.notes.getValue():"None")+'</p></div></div>'
                    						+ (ptoStatus == "pending"?'<div  style="padding-right:15px;padding-left:15px;margin: 0" class="ui-collapsible ui-collapsible-inset ui-collapsible-collapsed" data-content-theme="c" data-theme="b" data-role="collapsible"><h3 class="ui-collapsible-heading ui-collapsible-heading-collapsed"><a class=" ui-collapsible-heading-toggle ui-btn ui-fullsize ui-btn-icon-left ui-corner-top ui-corner-bottom ui-btn-up-b ui-btn-hover-b" href="#" data-corners="false" data-shadow="false" data-iconshadow="true" data-wrapperels="span" data-icon="plus" data-iconpos="left" data-theme="c" data-mini="true" style="text-align:center"><span id="'+ requestID +'"  class=" submit ui-btn-inner ui-corner-top ui-corner-bottom"><span class="ui-btn-text">Submit This Request</span></a></h3></div>':'</div>'))
                     						.appendTo(ptoStatus == "pending"?$('#collapsibleSet'):('#collapsibleSetForApprovedPTOs'));
                    						$element.collapsible();
-//                   						if (ptoStatus == "pending") {
-//                   							$(".submit").die();//get rid of previous added event handlers, so the eventhandler is unique
-//                   							
-//              							}
+                   						holidaysArray.forEach(function(elem) {
+                   							if ( ISOToDate(elem.date) > ptoRequest.firstDayOff.getValue()) {
+												console.log(ISOToDate(elem.date)+ " ; " + ptoRequest.firstDayOff.getValue());
+												holidaysArray.splice(holidaysArray.indexOf(elem.date),1);
+												var $holidayElement = $('<div  data-role="collapsible" data-collapsed="true" style="background: #ddd" '
+                   						 		+'><h3>' 
+                   								+ formatDate(ISOToDate(elem.date)) + "- " + formatDate(ISOToDate(elem.date)) + '  ' + elem.name
+                   								+ '</h3>' //<!--p style="padding-left: 15px;margin: 0"-->
+                   								+'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">PTO hours: <br />Floating days: <br />Return date: <br />Notes:</p></div>'
+                   								+'<div class="ui-block-b"><p style="margin: 0">'+ptoHours+'<br />'+floatingDays+'<br />'+formatDate(ptoRequest.returnToWorkDate.getValue())+'<br />'+(ptoRequest.notes.getValue()?ptoRequest.notes.getValue():"None")+'</p></div></div>'
+                   								+ '</div>')
+                    							.appendTo(('#collapsibleSetForApprovedPTOs'));
+                   								$holidayElement.collapsible();
+                   								return false;// break the forEach loop
+											}
+											else {
+												
+											}
+                   						});
                						}
 								}
     						});
@@ -76,8 +99,9 @@ function loadPTOs(ptoStatus) {
     				}
     			});
     		}
-    		
     	});
+    	}});
+	}});
 };
 
 function reloadPTOs() {
