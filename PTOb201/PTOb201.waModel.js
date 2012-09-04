@@ -15,7 +15,7 @@ guidedModel =// @startlock
 				eventArray.push({title  : 'Tim Penner : Floating Day', start  : '2012-08-02'});
 				eventArray.push({title  : 'Josh Fletcher : Paid Time Off : 4hrs', start  : '2012-09-05'});
 				*/
-				
+				var managerName;
 				var sessionRef = currentSession(); // Get session.
 				var promoteToken = sessionRef.promoteWith("Administrator"); //temporarily make this session Admin level.	
 				//if (loginByPassword("admin", "admin")) {	
@@ -31,6 +31,68 @@ guidedModel =// @startlock
 								if (lineItem.compensation === "Paid Time Off") {
 									eventObj.title += " : " + lineItem.hoursRequested;
 								}
+								
+								//get Manager
+								managerName = lineItem.ptoRequest.requestor.myManager.fullName;
+								myName = lineItem.ptoRequest.requestor.fullName;
+								
+								switch(managerName) {
+									case "Sandra Michaels":
+									if (myName === "Tom Miller") {
+										eventObj.backgroundColor = "#B0C4DE";
+										eventObj.borderColor = "#999999";
+										eventObj.textColor = "#333333";
+									} else if (myName === "Michel Gerin")  {
+										eventObj.backgroundColor = "#F0F080";
+										eventObj.borderColor = "#999999";
+										eventObj.textColor = "#333333";
+									} else {
+										eventObj.backgroundColor = "#B0C4DE";
+										eventObj.borderColor = "#999999";
+										eventObj.textColor = "#333333";
+									}	
+									break;
+									
+									case "Tom Miller":
+										if (myName === "Tracy Roberts") {
+											eventObj.backgroundColor = "#B4ACE6";
+											eventObj.borderColor = "#999999";
+											eventObj.textColor = "#333333";
+										} else if (myName === "Add Komoncharoensiri")  {
+											eventObj.backgroundColor = "#3CBC71";
+											eventObj.borderColor = "#999999";
+											eventObj.textColor = "#333333";
+										} else {
+											eventObj.backgroundColor = "#B0C4DE";
+											eventObj.borderColor = "#999999";
+											eventObj.textColor = "#333333";
+										}
+									break;
+									
+									case "Michel Gerin":
+									eventObj.backgroundColor = "#F0F080";
+									eventObj.borderColor = "#999999";
+									eventObj.textColor = "#333333";
+									break;
+									
+									case "Add Komoncharoensiri":
+									eventObj.backgroundColor = "#3CBC71";
+									eventObj.borderColor = "#999999";
+									eventObj.textColor = "#333333";
+									break;
+									
+									case "Tracy Roberts":
+									eventObj.backgroundColor = "#B4ACE6";
+									eventObj.borderColor = "#999999";
+									eventObj.textColor = "#333333";
+									break;
+									
+									default:
+									eventObj.backgroundColor = "#B0C4DE";
+									eventObj.borderColor = "#999999";
+									eventObj.textColor = "#333333";
+								}
+
 								eventObj.start = formatDateForCalendar(lineItem.dateRequested);
 								eventArray.push(eventObj);
 							}
@@ -322,6 +384,36 @@ guidedModel =// @startlock
 		},
 		events :
 		{
+			onRemove:function()
+			{// @endlock
+				var ptoRequest = this;
+				var myCurrentUser = currentUser(); // Get the current user
+				var sessionRef = currentSession(); // Get session.
+				var myUser = ds.User.find("ID = :1", myCurrentUser.ID); // Load their user entity
+				
+				
+				if (!(sessionRef.belongsTo("Administrator"))) {
+					if (myUser !== null) {
+						//Remove a PTO Request.
+						if (currentSession().belongsTo("Payroll") || currentSession().belongsTo("Manager") || currentSession().belongsTo("Administrator")) {
+							if (ptoRequest.requestor.ID !== myUser.ID) {
+								return {error: 2060, errorMessage: "Delete request rejected on the server. Only the requestor can remove a PTO."};
+							}
+						
+						} else {
+							//requestor is trying to remove PTO request.
+							if (this.status !== "pending") {
+								return {error: 2020, errorMessage: "Delete request rejected on the server. Only pending requests can be removed."};
+							} else {
+								return {error: 2030, errorMessage: "Delete request rejected on the server. Just for now..."};
+							}
+						}
+					
+					} else {
+						return {error: 2040, errorMessage: "Delete request rejected on the server. User record could not be loaded."};
+					}
+				} //(!(sessionRef.belongsTo("Administrator"))) 
+			},// @startlock
 			onRestrictingQuery:function()
 			{// @endlock
 				var myCurrentUser = currentUser(); // Get the current user
@@ -426,6 +518,8 @@ guidedModel =// @startlock
 								notes: this.emailText
 								//requestLineItems: [{name: "dave"}, {name: "tom"}, {name: "bill"}]
 						});
+						
+						thePort.postMessage({what: 'htmlEmailTest'});
 						
 						new ds.Note({ 
 							date: new Date(),

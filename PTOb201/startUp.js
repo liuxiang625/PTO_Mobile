@@ -10,7 +10,7 @@
 
 directory.setLoginListener("ptoLogin");
 
-//var theEmailWorker = new SharedWorker("sharedWorkers/emailDaemon.js", "emailDaemon");
+var theEmailWorker = new SharedWorker("sharedWorkers/emailDaemon.js", "emailDaemon");
 
 if (loginByPassword("admin", "admin")) {
 	//Seed Users
@@ -20,19 +20,20 @@ if (loginByPassword("admin", "admin")) {
 		/**/
 		userCollection.remove();
 		
+		var payrollManager = new ds.User({login: "smichaels", password: "michaels", fullName: "Sandra Michaels", email: "dave@wakanda.org", role: "Payroll", myManager: generalManager, accessLevel: 5, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
+		payrollManager.save();
+
 		var generalManager = new ds.User({login: "tmiller", password: "miller", fullName: "Tom Miller", email: "dave@wakanda.org", role: "Manager", myManager: payrollManager, accessLevel: 3, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
 		generalManager.save();
 		
-		var payrollManager = new ds.User({login: "smichaels", password: "michaels", fullName: "Sandra Michaels", email: "dave@wakanda.org", role: "Payroll", myManager: generalManager, accessLevel: 5, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
-		payrollManager.save();
 		
-		var salesManager = new ds.User({login: "troberts", password: "roberts", fullName: "Tracey Roberts", email: "dave@wakanda.org", role: "Manager", myManager: generalManager, accessLevel: 5, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
+		var salesManager = new ds.User({login: "troberts", password: "roberts", fullName: "Tracy Roberts", email: "dave@wakanda.org", role: "Manager", myManager: generalManager, accessLevel: 5, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
 		salesManager.save();
 		
 		var marketingManager = new ds.User({login: "mgerin", password: "gerin", fullName: "Michel Gerin", email: "dave@wakanda.org", role: "Manager", myManager: payrollManager, accessLevel: 3, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
 		marketingManager.save();
 		
-		var techServicesManager = new ds.User({login: "addk", password: "addk", fullName: "Add Komoncharoensiri", email: "dave@wakanda.org", role: "Manager", myManager: generalManager, accessLevel: 3, ptoHours: 80, floatingDays: 5, ptoSeedDate: new Date()});
+		var techServicesManager = new ds.User({login: "addk", password: "komoncharoensiri", fullName: "Add Komoncharoensiri", email: "dave@wakanda.org", role: "Manager", myManager: generalManager, accessLevel: 3, ptoHours: 80, floatingDays: 5, ptoSeedDate: new Date()});
 		techServicesManager.save();
 		
 		//Staff

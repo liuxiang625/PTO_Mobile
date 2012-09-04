@@ -28,7 +28,10 @@ function signIn() {
 			$$("richText1").setValue("Signed in as : " + WAF.directory.currentUser().fullName);
 			$$("signInContainer").hide();
 			$$("signOutContainer").show();
-			$$("container1").show();
+			
+			//$$("appContainer").show();
+			$("#appContainer").show();
+			
 			$("#container13").css("top", "-1px");
 			$$("container13").hide();
 			$$("textField11").setValue("");
@@ -64,7 +67,7 @@ function signIn() {
 			$$("richText1").setValue("");
 			$$("signOutContainer").hide();
 			$$("signInContainer").show();
-			$$("container1").hide();
+			$$("appContainer").hide();
 			$("#container13").css("top", "80px");
 			$("#container13").css("left", "0px");
 			$$("container13").show();	
@@ -187,7 +190,10 @@ function signIn() {
 
 		if (WAF.directory.currentUser() === null) {
 			$$("richText1").setValue("");
-			$$("container1").hide();
+			
+			//$$("appContainer").hide();
+			$("#appContainer").hide();
+			
 			$$("signInContainer").show();
 			$$("signOutContainer").hide();
 			$("#container13").css("top", "80px");
@@ -195,7 +201,10 @@ function signIn() {
 			$$("container13").show();		
 		} else {
 			$$("richText1").setValue("Signed in as : " + WAF.directory.currentUser().fullName);
-			$$("container1").show();
+			
+			//$$("appContainer").show();
+			$("#appContainer").show();
+			
 			$$("signInContainer").hide();
 			$$("signOutContainer").show();
 			$("#container13").css("top", "-1px");
@@ -206,7 +215,12 @@ function signIn() {
 	   		if ( e.keyCode == 13 ){
 	   			signIn();
 	    	}
-		});	
+		});
+		
+		//fix for combobox render bug where button get shoved
+		// to the next line because input element grows by 2 px.
+		var inputWidth = $('#combobox3 input').css('width');
+		$('#combobox3 input').css('width', "-=2");	
 	};// @lock
 
 // @region eventManager// @startlock

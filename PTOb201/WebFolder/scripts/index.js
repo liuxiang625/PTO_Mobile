@@ -2,6 +2,10 @@
 WAF.onAfterInit = function onAfterInit() {// @lock
 
 // @region namespaceDeclaration// @startlock
+	var button16 = {};	// @button
+	var button15 = {};	// @button
+	var button2 = {};	// @button
+	var calendarButton = {};	// @button
 	var dataGrid2 = {};	// @dataGrid
 	var button12 = {};	// @button
 	var button5 = {};	// @button
@@ -22,8 +26,12 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 // @endregion// @endlock
 
 //David Robbins Functions - Start
-var currentUserIsManagement = false,
+var buildCalendar = true,
+	displayCalendarDialog = true,
+	currentUserIsManagement = false,
 	currentUserIsEmployee = false,
+	buildCalendar = true,
+	currentPTO,
 	today = new Date(),
 	currentPTOPrimaryKey = -1,
 	dd = today.getDate(),
@@ -35,15 +43,18 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 
 function setMessageValue(message, error) {
 	if (arguments.length === 0) {
-		$$('messagesRichText').setTextColor("#153E7E");
+		//$$('messagesRichText').setTextColor("#153E7E");
+		$$('messagesRichText').setTextColor("green");
 		message = "";
 	} else if (arguments.length === 1) {
-		$$('messagesRichText').setTextColor("#153E7E");
+		//$$('messagesRichText').setTextColor("#153E7E");
+		$$('messagesRichText').setTextColor("green");
 	} else if (arguments.length === 2) {
 		$$('messagesRichText').setTextColor("red");
 		//$('#messagesRichText').css("color", "red");
 	} else {
-		$$('messagesRichText').setTextColor("#153E7E");
+		//$$('messagesRichText').setTextColor("#153E7E");
+		$$('messagesRichText').setTextColor("green");
 	}
 	
 	$$('messagesRichText').setValue(message);
@@ -70,13 +81,18 @@ function savePTORequest(message) {
 				"status !== :1 order by firstDayOff", "closed",
 				{
 				onSuccess: function (event) {
-					WAF.sources.pTO_Request.selectByKey(primKey, {
-						onSuccess: function(event) {
-							currentPTOPrimaryKey = primKey;
-							createEmailAccordian();
-							disableInput();
-						}
-					});
+					WAF.sources.pTO_Request.selectByKey(primKey);
+					currentPTOPrimaryKey = primKey;
+					createEmailAccordian();
+					disableInput();
+					
+//					WAF.sources.pTO_Request.selectByKey(primKey, {
+//						onSuccess: function(event) {
+//							currentPTOPrimaryKey = primKey;
+//							createEmailAccordian();
+//							disableInput();
+//						}
+//					});
 				}
 			});	
 		},
@@ -433,7 +449,7 @@ function signIn() {
 		}
 		WAF.sources.statusArray.sync();
 		
-		
+		$('#calendarButton').show();
 		$$("richText2").setValue("Signed in as : " + WAF.directory.currentUser().fullName);
 		$$("signInContainer").hide();
 		$$("signOutContainer").show();
@@ -474,6 +490,66 @@ function handleEmailMessageDialog() {
 
 
 // eventHandlers// @lock
+
+	button16.click = function button16_click (event)// @startlock
+	{// @endlock
+		$$('confirmRichText').setValue("");
+		$$('confirmationDialog').closeDialog(); //ok button
+		
+		waf.sources.pTO_Request.removeCurrent({
+			onSuccess: function(event) {
+				
+			},
+			onError: function(error) {
+				setMessageValue(error['error'][0].message + " (" + error['error'][0].errCode + ")", true);
+			}
+		});
+		
+	};// @lock
+
+	button15.click = function button15_click (event)// @startlock
+	{// @endlock
+		$$('confirmRichText').setValue("");
+		$$('confirmationDialog').closeDialog(); //cancel button
+	};// @lock
+
+	button2.click = function button2_click (event)// @startlock
+	{// @endlock
+		//Delete PTO Request
+		//if (waf.sources.pTO_Request.status === "pending") {
+		if (waf.sources.pTO_Request.ID !== null) {
+			$$('confirmRichText').setValue("Delete PTO Request " + waf.sources.pTO_Request.ID + "?");
+			$('#confirmationDialog').css("top", 285);
+			$('#confirmationDialog').css("left", 400);
+			WAF.widgets['confirmationDialog'].displayDialog();
+		} else {
+			setMessageValue("You must select a pending PTO request first.");
+		}
+	};// @lock
+
+	calendarButton.click = function calendarButton_click (event)// @startlock
+	{// @endlock
+		//Calendar
+		if (!(WAF.directory.currentUser() === null)) {
+			//$('#calendar').fullCalendar('removeEvents');
+			$('#calendar').fullCalendar('destroy');
+			waf.ds.RequestLineItem.getCalendarArray({
+				onSuccess: function(event) {
+					$('#calendar').fullCalendar({
+	       				 // put your options and callbacks here
+	       				height: 408,
+	        			weekends: true, // will hide Saturdays and Sundays
+	        			events: event.result
+					})
+				}
+			});
+			
+			$('#dialog2').css("top", 100);
+			$('#dialog2').css("left", 200);
+			WAF.widgets['dialog2'].displayDialog();
+		}
+
+	};// @lock
 
 	dataGrid2.onRowClick = function dataGrid2_onRowClick (event)// @startlock
 	{// @endlock
@@ -544,6 +620,7 @@ function handleEmailMessageDialog() {
 			WAF.sources.pTO_Request.setEntityCollection();
 			WAF.sources.pTO_Request1.setEntityCollection();
 			
+			$('#calendarButton').hide();
 			$$("richText2").setValue("");
 			$$("signOutContainer").hide();
 			$$("signInContainer").show();
@@ -727,12 +804,13 @@ function handleEmailMessageDialog() {
 			WAF.sources.pTO_Request.setEntityCollection();
 			WAF.sources.pTO_Request1.setEntityCollection();
 			$$("richText2").setValue("");
-			$$("container1").hide();
+			//$$("container1").hide();
 			$("#container7").css("top", "80px");
 			$("#container7").css("left", "0px");
 			$$("container7").show();
 			$$("signInContainer").show();
-			$$("signOutContainer").hide();
+			//$$("signOutContainer").hide();
+			$('#calendarButton').hide();
 		} else {
 			//We have a user signed in.
 			WAF.sources.pTO_Request.query(
@@ -757,6 +835,7 @@ function handleEmailMessageDialog() {
 			$$("container7").hide();
 			$$("signInContainer").hide();
 			$$("signOutContainer").show();
+			$('#calendarButton').show();
 		}
 		
 		/**/
@@ -797,9 +876,22 @@ function handleEmailMessageDialog() {
 		});
 		
 		//$('dd').hide();	
+		
+		//fix for combobox render bug where button get shoved
+		// to the next line because input element grows by 2 px.
+		var inputWidth = $('#combobox2 input').css('width');
+		$('#combobox2 input').css('width', "-=2");
+		var inputWidth = $('#combobox1 input').css('width');
+		$('#combobox1 input').css('width', "-=2");
+		
+	
 	};// @lock
 
 // @region eventManager// @startlock
+	WAF.addListener("button16", "click", button16.click, "WAF");
+	WAF.addListener("button15", "click", button15.click, "WAF");
+	WAF.addListener("button2", "click", button2.click, "WAF");
+	WAF.addListener("calendarButton", "click", calendarButton.click, "WAF");
 	WAF.addListener("dataGrid2", "onRowClick", dataGrid2.onRowClick, "WAF");
 	WAF.addListener("button12", "click", button12.click, "WAF");
 	WAF.addListener("button5", "click", button5.click, "WAF");

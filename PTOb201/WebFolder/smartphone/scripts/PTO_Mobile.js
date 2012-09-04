@@ -146,20 +146,13 @@ function saveButton_clicked() {
 	WAF.sources.pTO_Request.notes = $("textarea").val();
 	WAF.sources.pTO_Request.save({
         	onSuccess: function(event) {
-//				updateUserAccountDisplay();
-//				if (event.dataSource.status === "pending") {
-//					$("#errorDiv1").html("PTO Request Saved. Double-click any request line item to edit your request.");
-//				} else {
-//					$("#errorDiv1").html("PTO Request Saved.");
-//				}
-				alert("Your PTO request has been created!");
 				WAF.sources.pTO_Request.all();
 				reloadPTOs();
 				$("#startDate").val("");
 				$("#endDate").val("");
 				$("textarea").val("");
 				$('#errorlog > div').remove();
-				$.mobile.changePage("#page6", "slide");
+				$.mobile.changePage("#page6", { transition: "slideup"});
 //				/**/
 //				WAF.sources.pTO_Request.all({
 //					onSuccess: function (event) {
@@ -209,25 +202,24 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 // @endregion// @endlock
 
 // eventHandlers// @lock
-	$(".submit").live('tap', function (event) {
-                   						  	     var requestKey = this.id; 
-        										 WAF.sources.pTO_Request.selectByKey(requestKey,{
-        										 	onSuccess: function(event) {
-														WAF.sources.pTO_Request.status = "requested";
-        										 		WAF.sources.pTO_Request.save({
-        										 			onSuccess: function(event) {
-																alert("Your PTO request has been submitted!");
-																reloadPTOs();
-															},
-           													onError: function(error) {
-           														console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
-          													}
-      													});
-													}
-        										 });
-        										
-    										});	
-    										
+	$(".submit").live('tap', function(event) {
+	    var requestKey = this.id;
+	    WAF.sources.pTO_Request.selectByKey(requestKey, {
+	        onSuccess: function(event) {
+	            WAF.sources.pTO_Request.status = "requested";
+	            WAF.sources.pTO_Request.save({
+	                onSuccess: function(event) {
+	                    alert("Your PTO request has been submitted!");
+	                    reloadPTOs();
+	                },
+	                onError: function(error) {
+	                    console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+	                }
+	            });
+	        }
+	    });
+
+	});
 	documentEvent.onLoad = function documentEvent_onLoad (event)// @startlock
 	{// @endlock
 //		 var dates = $('#startDate, #endDate').datepicker({
@@ -240,13 +232,13 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 //    	});
 		
 		if (WAF.directory.currentUser() === null) {
-				$.mobile.changePage("#page1", "slideup");
+				$.mobile.changePage("#page1", { transition: "pop"});
 				
 		}
 		else {
 			loadPTOs('pending');
 			loadPTOs('approved');
-			$.mobile.changePage("#page6", "slideup");
+			$.mobile.changePage("#page6", { transition: "pop"});
 		}
 	};// @lock
 
