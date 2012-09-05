@@ -629,6 +629,11 @@ guidedModel =// @startlock
 				
 					//status
 					//Let's think about status June 29 2012
+					if ((this.status === "closed") && (oldEntity.status === "requested")) {
+						err = { error : 4022, errorMessage: "You do not have permission to close a requested PTO request."};
+						return err;	
+					}
+					
 					if ((oldEntity.status === "closed") || (oldEntity.status === "rejected")) {
 						err = { error : 4011, errorMessage: "You do not have permission to update a closed PTO request."};
 						return err;	

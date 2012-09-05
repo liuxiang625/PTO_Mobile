@@ -30,12 +30,6 @@ function loadPTOs(ptoStatus) {
     ds.Holiday.all({orderBy:"date", onSuccess:function(event) {
 		event.entityCollection.toArray("name,date", {onSuccess: function(ev) {
 		holidaysArray = ev.result;
-//												var myHTML = '';
-//												arr.forEach(function(elem) { 
-//													myHTML += '<p class="holiday">' + elem.name + " : " + formatDate(ISOToDate(elem.date)) + '</p>';
-//												});
-//												$('#container5').html('Upcoming 4D Holidays: ' + myHTML);
-		
 	WAF.ds.User.query("fullName = :1",WAF.directory.currentUser().fullName , {
     		autoExpand: "pTO_RequestCollection",
     		onSuccess: function(event) {
@@ -75,21 +69,17 @@ function loadPTOs(ptoStatus) {
                    						$element.collapsible();
                    						holidaysArray.forEach(function(elem) {
                    							if ( ISOToDate(elem.date) > ptoRequest.firstDayOff.getValue()) {
-												console.log(ISOToDate(elem.date)+ " ; " + ptoRequest.firstDayOff.getValue());
 												holidaysArray.splice(holidaysArray.indexOf(elem.date),1);
 												var $holidayElement = $('<div  data-role="collapsible" data-collapsed="true" style="background: #ddd" '
                    						 		+'><h3>' 
                    								+ formatDate(ISOToDate(elem.date)) + "- " + formatDate(ISOToDate(elem.date)) + '  ' + elem.name
                    								+ '</h3>' //<!--p style="padding-left: 15px;margin: 0"-->
-                   								+'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">PTO hours: <br />Floating days: <br />Return date: <br />Notes:</p></div>'
-                   								+'<div class="ui-block-b"><p style="margin: 0">'+ptoHours+'<br />'+floatingDays+'<br />'+formatDate(ptoRequest.returnToWorkDate.getValue())+'<br />'+(ptoRequest.notes.getValue()?ptoRequest.notes.getValue():"None")+'</p></div></div>'
+                   								+'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">Return date: </p></div>'
+                   								+'<div class="ui-block-b"><p style="margin: 0">'+formatDate(getNextWorkDay(ISOToDate(elem.date)))+'</p></div></div>'
                    								+ '</div>')
                     							.appendTo(('#collapsibleSetForApprovedPTOs'));
                    								$holidayElement.collapsible();
                    								return false;// break the forEach loop
-											}
-											else {
-												
 											}
                    						});
                						}

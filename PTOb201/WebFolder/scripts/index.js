@@ -2,6 +2,8 @@
 WAF.onAfterInit = function onAfterInit() {// @lock
 
 // @region namespaceDeclaration// @startlock
+	var menuItem3 = {};	// @menuItem
+	var menuItem4 = {};	// @menuItem
 	var button16 = {};	// @button
 	var button15 = {};	// @button
 	var button2 = {};	// @button
@@ -41,195 +43,227 @@ if(dd<10){dd='0'+dd}
 if(mm<10){mm='0'+mm}
 var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 
-function setMessageValue(message, error) {
-	if (arguments.length === 0) {
-		//$$('messagesRichText').setTextColor("#153E7E");
-		$$('messagesRichText').setTextColor("green");
-		message = "";
-	} else if (arguments.length === 1) {
-		//$$('messagesRichText').setTextColor("#153E7E");
-		$$('messagesRichText').setTextColor("green");
-	} else if (arguments.length === 2) {
-		$$('messagesRichText').setTextColor("red");
-		//$('#messagesRichText').css("color", "red");
-	} else {
-		//$$('messagesRichText').setTextColor("#153E7E");
-		$$('messagesRichText').setTextColor("green");
+	function setMessageValue(message, error) {
+		if (arguments.length === 0) {
+			//$$('messagesRichText').setTextColor("#153E7E");
+			$$('messagesRichText').setTextColor("green");
+			message = "";
+		} else if (arguments.length === 1) {
+			//$$('messagesRichText').setTextColor("#153E7E");
+			$$('messagesRichText').setTextColor("green");
+		} else if (arguments.length === 2) {
+			$$('messagesRichText').setTextColor("red");
+			//$('#messagesRichText').css("color", "red");
+		} else {
+			//$$('messagesRichText').setTextColor("#153E7E");
+			$$('messagesRichText').setTextColor("green");
+		}
+		
+		$$('messagesRichText').setValue(message);
 	}
-	
-	$$('messagesRichText').setValue(message);
-}
 
-function savePTORequest(message) {
-	if (typeof message !== "undefined") {
-		WAF.sources.pTO_Request.emailText = message;
-	}
-	
-	var primKey = WAF.sources.pTO_Request.ID;
-	WAF.sources.pTO_Request.save({
-    	onSuccess: function(event) {
-			updateUserAccountDisplay();
-			if (event.dataSource.status === "requested") {
-				setMessageValue("PTO Request Saved. An email has been sent to your manager.");
-			} else if (event.dataSource.status === "pending") {
-				setMessageValue("PTO Request Saved. Double-click line-items to update PTO request.");
-			} else {
-				setMessageValue("PTO Request Saved.");
-			}
-			/**/
-			WAF.sources.pTO_Request.query(
-				"status !== :1 order by firstDayOff", "closed",
-				{
-				onSuccess: function (event) {
-					WAF.sources.pTO_Request.selectByKey(primKey);
-					currentPTOPrimaryKey = primKey;
-					createEmailAccordian();
-					disableInput();
-					
-//					WAF.sources.pTO_Request.selectByKey(primKey, {
-//						onSuccess: function(event) {
-//							currentPTOPrimaryKey = primKey;
-//							createEmailAccordian();
-//							disableInput();
-//						}
-//					});
+	function savePTORequest(message) {
+		if (typeof message !== "undefined") {
+			WAF.sources.pTO_Request.emailText = message;
+		}
+		
+		var primKey = WAF.sources.pTO_Request.ID;
+		//console.log('primary key before save: ' + WAF.sources.pTO_Request.ID);
+		WAF.sources.pTO_Request.save({
+			//userData: {primaryKey: primKey},
+	    	onSuccess: function(event) {
+	    		//console.log('primary key after save: ' + event.dataSource.ID);
+				updateUserAccountDisplay();
+				if (event.dataSource.status === "requested") {
+					setMessageValue("PTO Request Saved. An email has been sent to your manager.");
+				} else if (event.dataSource.status === "pending") {
+					setMessageValue("PTO Request Saved. Double-click line-items to update PTO request.");
+				} else {
+					setMessageValue("PTO Request Saved.");
 				}
-			});	
-		},
-           	onError: function(error) {
-           		setMessageValue(error['error'][0].message + " (" + error['error'][0].errCode + ")", true);
-           		//Ask Laurent if serverRefresh supports declareDependencies or autoExpand.
-           		WAF.sources.pTO_Request.serverRefresh({forceReload: true});
-         		/*
-           		WAF.sources.pTO_Request.all({
+				
+				//WAF.sources.pTO_Request.addEntity(event.dataSource.getCurrentElement());
+				//WAF.sources.pTO_Request.selectByKey(primKey);
+				WAF.sources.pTO_Request.selectByKey(event.dataSource.ID);
+				currentPTOPrimaryKey = primKey;
+				createEmailAccordian();
+				disableInput();
+				
+				/*
+				WAF.sources.pTO_Request.query(
+					"status !== :1 order by firstDayOff", "closed",
+					{
+					//userData: {primaryKey: event.userData.primaryKey},
+					onSuccess: function (event) {
+						WAF.sources.pTO_Request.selectByKey(primKey);
+						//WAF.sources.pTO_Request.selectByKey(event.userData.primaryKey);
+						currentPTOPrimaryKey = primKey;
+						createEmailAccordian();
+						disableInput();
+					}
+				});
+				*/
+					
+			},
+	     	onError: function(error) {
+	        	setMessageValue(error['error'][0].message + " (" + error['error'][0].errCode + ")", true);
+	           	//Ask Laurent if serverRefresh supports declareDependencies or autoExpand.
+	           	WAF.sources.pTO_Request.serverRefresh({forceReload: true});
+	         	/*
+	           	WAF.sources.pTO_Request.all({
 					onSuccess: function (event) {
 					WAF.sources.pTO_Request.selectByKey(primKey);
 				}});
 				*/
-          	}		
-      	});
-} //end - savePTORequest()
+	          }		
+	      });
+	} //end - savePTORequest()
 
-function formatDate(dateObject) {
-	var curr_date = dateObject.getDate();
-	var curr_month = dateObject.getMonth();
-	curr_month++;
-	var curr_year = dateObject.getFullYear();
-	return curr_month + "/" + curr_date + "/" + curr_year;
-}
-
-function monthDiff(d1, d2) {
-    var months;
-    months = (d2.getFullYear() - d1.getFullYear()) * 12;
-    months -= d1.getMonth() + 1;
-    months += d2.getMonth();
-    return months;
-}
-
-function lastDayOfMonth(year, month) {
- 	return(new Date((new Date(year, month+1,1))-1)).getDate();
-}
-
-function daysInMonth(month,year) {
-	var m = [31,28,31,30,31,30,31,31,30,31,30,31];
-	if (month != 2) return m[month - 1];
-	if (year%4 != 0) return m[1];
-	if (year%100 == 0 && year%400 != 0) return m[1];
-	return m[1] + 1;
-}
-
-function elapsedPayPeriods(userEntity) {
-	var ptoHoursAccruedToDate;
-	var seedPTOHours = userEntity.ptoHours.getValue();
-	var seedPTOAccrualRate= userEntity.ptoAccrualRate.getValue();
-	var seedPTODate = userEntity.ptoSeedDate.getValue();
-	//Figure out how many pay periods have passed from PTO Seed Date
-	// until current date.
-	var todaysDate = new Date();
-	var mm = todaysDate.getMonth()+1; //January is 0!
-	var yyyy = todaysDate.getFullYear();
-	var dd = todaysDate.getDate();
-	var seedDay = seedPTODate.getDate();
-	var numberOfPayPeriodsElapsed = monthDiff(seedPTODate, todaysDate) * 2;
-	
-	if (seedDay < 15) {
-		numberOfPayPeriodsElapsed += 2;
-	} else {
-		numberOfPayPeriodsElapsed += 1;
+	function formatDate(dateObject) {
+		var curr_date = dateObject.getDate();
+		var curr_month = dateObject.getMonth();
+		curr_month++;
+		var curr_year = dateObject.getFullYear();
+		return curr_month + "/" + curr_date + "/" + curr_year;
 	}
-	
-	if (dd > 14) {
-		numberOfPayPeriodsElapsed += 1;	
-	} 
 
-	return numberOfPayPeriodsElapsed;
-}
+	function monthDiff(d1, d2) {
+	    var months;
+	    months = (d2.getFullYear() - d1.getFullYear()) * 12;
+	    months -= d1.getMonth() + 1;
+	    months += d2.getMonth();
+	    return months;
+	}
 
-function updateUserAccountDisplay() {
-	var myCurrentUser = WAF.directory.currentUser(); // Get the current user
-	var myUser = WAF.ds.User.find("ID = " + myCurrentUser.ID, {
-		onSuccess: function(event) {
-			var theNumberOfElapsedPayPeriods = elapsedPayPeriods(event.entity);
-			var currentPTOHours = event.entity.ptoHours.getValue() + (theNumberOfElapsedPayPeriods * event.entity.ptoAccrualRate.getValue());
-			var myHTML = '';
-			myHTML += '<p class="holiday">' + "Floating Holidays: " + event.entity.floatingDays.getValue() + "."  + '</p>'; 
-			myHTML += '<p class="holiday">' + "Paid Time Off Hours: " + currentPTOHours + "."  + '</p>'; 
-			//myHTML += '<p class="holiday">' + "Manager: " + "Under Construction" + "."  + '</p>'; 
-			
-			$('#container6').html('User Account: <br/><br/>' + myHTML);
+	function lastDayOfMonth(year, month) {
+	 	return(new Date((new Date(year, month+1,1))-1)).getDate();
+	}
+
+	function daysInMonth(month,year) {
+		var m = [31,28,31,30,31,30,31,31,30,31,30,31];
+		if (month != 2) return m[month - 1];
+		if (year%4 != 0) return m[1];
+		if (year%100 == 0 && year%400 != 0) return m[1];
+		return m[1] + 1;
+	}
+
+	function elapsedPayPeriods(userEntity) {
+		var ptoHoursAccruedToDate;
+		var seedPTOHours = userEntity.ptoHours.getValue();
+		var seedPTOAccrualRate= userEntity.ptoAccrualRate.getValue();
+		var seedPTODate = userEntity.ptoSeedDate.getValue();
+		//Figure out how many pay periods have passed from PTO Seed Date
+		// until current date.
+		var todaysDate = new Date();
+		var mm = todaysDate.getMonth()+1; //January is 0!
+		var yyyy = todaysDate.getFullYear();
+		var dd = todaysDate.getDate();
+		var seedDay = seedPTODate.getDate();
+		var numberOfPayPeriodsElapsed = monthDiff(seedPTODate, todaysDate) * 2;
+		
+		if (seedDay < 15) {
+			numberOfPayPeriodsElapsed += 2;
+		} else {
+			numberOfPayPeriodsElapsed += 1;
 		}
-	}); // Load their user entity.
-}
+		
+		if (dd > 14) {
+			numberOfPayPeriodsElapsed += 1;	
+		} 
 
-function updateHolidayDisplay() {
-	ds.Holiday.all({orderBy:"date", onSuccess:function(event) {
-		event.entityCollection.toArray("name,date", {onSuccess: function(ev) {
-			var arr = ev.result;
-			var myHTML = '';
-			arr.forEach(function(elem) { 
-				myHTML += '<p class="holiday">' + elem.name + " : " + formatDate(ISOToDate(elem.date)) + '</p>';
-			});
-			$('#container5').html('Upcoming 4D Holidays: ' + myHTML);
+		return numberOfPayPeriodsElapsed;
+	}
+
+	function updateUserAccountDisplay() {
+		var myCurrentUser = WAF.directory.currentUser(); // Get the current user
+		var myUser = WAF.ds.User.find("ID = " + myCurrentUser.ID, {
+			onSuccess: function(event) {
+				var theNumberOfElapsedPayPeriods = elapsedPayPeriods(event.entity);
+				var currentPTOHours = event.entity.ptoHours.getValue() + (theNumberOfElapsedPayPeriods * event.entity.ptoAccrualRate.getValue());
+				var myHTML = '';
+				myHTML += '<p class="holiday">' + "Floating Holidays: " + event.entity.floatingDays.getValue() + "."  + '</p>'; 
+				myHTML += '<p class="holiday">' + "Paid Time Off Hours: " + currentPTOHours + "."  + '</p>'; 
+				//myHTML += '<p class="holiday">' + "Manager: " + "Under Construction" + "."  + '</p>'; 
+				
+				$('#container6').html('User Account: <br/><br/>' + myHTML);
+			}
+		}); // Load their user entity.
+	}
+
+	function updateHolidayDisplay() {
+		ds.Holiday.all({orderBy:"date", onSuccess:function(event) {
+			event.entityCollection.toArray("name,date", {onSuccess: function(ev) {
+				var arr = ev.result;
+				var myHTML = '';
+				arr.forEach(function(elem) { 
+					myHTML += '<p class="holiday">' + elem.name + " : " + formatDate(ISOToDate(elem.date)) + '</p>';
+				});
+				$('#container5').html('Upcoming 4D Holidays: ' + myHTML);
+			}});
 		}});
-	}});
-}
+	}
 
-function enableInput() {
-	$("#textField3").removeAttr("disabled"); //First Day Off
-	$("#textField4").removeAttr("disabled"); //Last Day Off
-	$("#textField15").removeAttr("disabled"); //line item hours
-	//$$("combobox2").enable(); //status
-	$$("button6").enable();
-	$$("button7").enable();
-}
+	function enableInput() {
+		$("#textField3").removeAttr("disabled"); //First Day Off
+		$("#textField4").removeAttr("disabled"); //Last Day Off
+		$("#textField15").removeAttr("disabled"); //line item hours
+		//$$("combobox2").enable(); //status
+		$$("button6").enable();
+		$$("button7").enable();
+	}
 
-function disableInput() {
-	if (currentUserIsManagement) { 
-		currentPTOUserName = WAF.sources.pTO_Request.getAttribute("requestor.fullName").getValue();
-		if (WAF.directory.currentUser().fullName !== currentPTOUserName) {
-		//Manager is looking at Employee request.
+	function disableInput() {
+		if (currentUserIsManagement) { 
+			currentPTOUserName = WAF.sources.pTO_Request.getAttribute("requestor.fullName").getValue();
+			if (WAF.directory.currentUser().fullName !== currentPTOUserName) {
+			//Manager is looking at Employee request.
+				$("#textField3").attr("disabled", "disabled"); //First Day Off
+				$("#textField4").attr("disabled", "disabled"); //Last Day Off
+				$("#textField5").attr("disabled", "disabled"); //Return To Work Date
+				$$("button6").disable();
+				$$("button7").disable();
+				$$("combobox1").disable();
+				$("#textField15").attr("disabled", "disabled"); //line item hours
+				
+				if ((WAF.sources.pTO_Request.status === "closed") || (WAF.sources.pTO_Request.status === "rejected")) {
+					$$("combobox2").disable(); //status
+				} else {
+					$$("combobox2").enable(); //status
+				}			
+			} else {
+			//Manager is looking at their own request.
+				if (WAF.sources.pTO_Request.status !== "pending") {
+					$$("button6").disable();
+					$$("button7").disable();
+					$$("combobox1").disable();
+					$("#textField15").attr("disabled", "disabled"); //line item hours
+					$$("combobox2").disable(); //status
+					//$("#textField8").attr("disabled", "disabled"); //Notes
+					
+				} else {
+					$$("button6").enable();
+					$$("button7").enable();
+					$$("combobox1").enable();
+					$("#textField15").removeAttr("disabled"); //line item hours
+					$$("combobox2").enable(); //status
+				}
+				
+				$("#textField3").attr("disabled", "disabled"); //First Day Off
+				$("#textField4").attr("disabled", "disabled"); //Last Day Off
+				$("#textField5").attr("disabled", "disabled"); //Return To Work Date
+			}
+		} else {
+			//Employee is signed in
 			$("#textField3").attr("disabled", "disabled"); //First Day Off
 			$("#textField4").attr("disabled", "disabled"); //Last Day Off
 			$("#textField5").attr("disabled", "disabled"); //Return To Work Date
-			$$("button6").disable();
-			$$("button7").disable();
-			$$("combobox1").disable();
-			$("#textField15").attr("disabled", "disabled"); //line item hours
 			
-			if ((WAF.sources.pTO_Request.status === "closed") || (WAF.sources.pTO_Request.status === "rejected")) {
-				$$("combobox2").disable(); //status
-			} else {
-				$$("combobox2").enable(); //status
-			}			
-		} else {
-		//Manager is looking at their own request.
 			if (WAF.sources.pTO_Request.status !== "pending") {
 				$$("button6").disable();
 				$$("button7").disable();
 				$$("combobox1").disable();
 				$("#textField15").attr("disabled", "disabled"); //line item hours
 				$$("combobox2").disable(); //status
-				//$("#textField8").attr("disabled", "disabled"); //Notes
 				
 			} else {
 				$$("button6").enable();
@@ -237,259 +271,248 @@ function disableInput() {
 				$$("combobox1").enable();
 				$("#textField15").removeAttr("disabled"); //line item hours
 				$$("combobox2").enable(); //status
-			}
-			
-			$("#textField3").attr("disabled", "disabled"); //First Day Off
-			$("#textField4").attr("disabled", "disabled"); //Last Day Off
-			$("#textField5").attr("disabled", "disabled"); //Return To Work Date
+			} //(WAF.sources.pTO_Request.status !== "pending") 
 		}
-	} else {
-		//Employee is signed in
-		$("#textField3").attr("disabled", "disabled"); //First Day Off
-		$("#textField4").attr("disabled", "disabled"); //Last Day Off
-		$("#textField5").attr("disabled", "disabled"); //Return To Work Date
-		
-		if (WAF.sources.pTO_Request.status !== "pending") {
-			$$("button6").disable();
-			$$("button7").disable();
-			$$("combobox1").disable();
-			$("#textField15").attr("disabled", "disabled"); //line item hours
-			$$("combobox2").disable(); //status
+	}
+
+	function getNextWorkDay(textFieldIDSelector) {
+		var lastDayArray = $(textFieldIDSelector).val().split("/");
+		var yyyy = lastDayArray[2];
+		var mm = lastDayArray[0];
+		switch (mm) {
+			case "01" :
+			mm = "00";
+			break;
 			
+			case "02" :
+			mm = "01";
+			break;
+			
+			case "03" :
+			mm = "02";
+			break;
+			
+			case "04" :
+			mm = "03";
+			break;
+			
+			case "05" :
+			mm = "04";
+			break;
+			
+			case "06" :
+			mm = "05";
+			break;
+			
+			case "07" :
+			mm = "06";
+			break;
+			
+			case "08" :
+			mm = "07";
+			break;
+			
+			case "09" :
+			mm = "08";
+			break;
+			
+			case "10" :
+			mm = "09";
+			break;
+			
+			case "11" :
+			mm = "10";
+			break;
+			
+			case "12" :
+			mm = "11";
+			break;		
+		} //Switch
+		
+		var dd = lastDayArray[1];
+		var lastDay = new Date(yyyy, mm, dd);
+		
+		if(lastDay.getDay() == 5) {
+			//Friday
+			lastDay.setDate(lastDay.getDate()+3);
+		} else if (lastDay.getDay() == 6) {
+			//Saturday
+			lastDay.setDate(lastDay.getDate()+2);
 		} else {
-			$$("button6").enable();
-			$$("button7").enable();
-			$$("combobox1").enable();
-			$("#textField15").removeAttr("disabled"); //line item hours
-			$$("combobox2").enable(); //status
-		} //(WAF.sources.pTO_Request.status !== "pending") 
-	}
-}
-
-function getNextWorkDay(textFieldIDSelector) {
-	var lastDayArray = $(textFieldIDSelector).val().split("/");
-	var yyyy = lastDayArray[2];
-	var mm = lastDayArray[0];
-	switch (mm) {
-		case "01" :
-		mm = "00";
-		break;
-		
-		case "02" :
-		mm = "01";
-		break;
-		
-		case "03" :
-		mm = "02";
-		break;
-		
-		case "04" :
-		mm = "03";
-		break;
-		
-		case "05" :
-		mm = "04";
-		break;
-		
-		case "06" :
-		mm = "05";
-		break;
-		
-		case "07" :
-		mm = "06";
-		break;
-		
-		case "08" :
-		mm = "07";
-		break;
-		
-		case "09" :
-		mm = "08";
-		break;
-		
-		case "10" :
-		mm = "09";
-		break;
-		
-		case "11" :
-		mm = "10";
-		break;
-		
-		case "12" :
-		mm = "11";
-		break;		
-	} //Switch
-	
-	var dd = lastDayArray[1];
-	var lastDay = new Date(yyyy, mm, dd);
-	
-	if(lastDay.getDay() == 5) {
-		//Friday
-		lastDay.setDate(lastDay.getDate()+3);
-	} else if (lastDay.getDay() == 6) {
-		//Saturday
-		lastDay.setDate(lastDay.getDate()+2);
-	} else {
-		lastDay.setDate(lastDay.getDate()+1);
-	}
-	
-	
-	var yyyyNext = lastDay.getFullYear();
-	var mmNext = lastDay.getMonth();
-	
-	switch (mmNext) {
-		case 0 :
-		mmNext = "01";
-		break;
-		
-		case 1 :
-		mmNext = "02";
-		break;
-		
-		case 2 :
-		mmNext = "03";
-		break;	
-
-		case 3 :
-		mmNext = "04";
-		break;	
-
-		case 4 :
-		mmNext = "05";
-		break;	
-
-		case 5 :
-		mmNext = "06";
-		break;	
-
-		case 6 :
-		mmNext = "07";
-		break;	
-
-		case 7 :
-		mmNext = "08";
-		break;	
-
-		case 8 :
-		mmNext = "09";
-		break;	
-
-		case 9 :
-		mmNext = "10";
-		break;	
-
-		case 10 :
-		mmNext = "11";
-		break;	
-
-		case 11 :
-		mmNext = "12";
-		break;	
-	} //Switch mmNext
-	
-	var ddNext = lastDay.getDate();
-	
-	return(mmNext + "/" + ddNext + "/" + yyyyNext);
-	//return lastDay.toDateString();
-}
-
-function createEmailAccordian() {
-	$('#noteDL').children().remove();
-	
-	var currentPTOID = waf.sources.pTO_Request.ID;
-	
-	var noteCollection = WAF.ds.Note.query("pto.ID = " + currentPTOID, {
-		onSuccess: function(event) {
-			event.entityCollection.toArray("date, title, body", {onSuccess: function(ev) {
-				var arr = ev.result;
-				//var myHTML = '';
-				arr.forEach(function(elem) { 
-					$('<dt>', {
-						text: formatDate(ISOToDate(elem.date)) + " : " + elem.title
-					}).appendTo('#noteDL');		
-					
-					
-					var myBodyDiv = $('<div>', {
-						text: elem.body,
-						"class" : "noteBodyDiv"
-					});
-									
-					var myDD = $('<dd>');
-					myDD.append(myBodyDiv);
-					$('#noteDL').append(myDD);
-				});
-				//$('#noteContainer').html(myHTML);
-			}});
+			lastDay.setDate(lastDay.getDate()+1);
 		}
-	});
-}
+		
+		
+		var yyyyNext = lastDay.getFullYear();
+		var mmNext = lastDay.getMonth();
+		
+		switch (mmNext) {
+			case 0 :
+			mmNext = "01";
+			break;
+			
+			case 1 :
+			mmNext = "02";
+			break;
+			
+			case 2 :
+			mmNext = "03";
+			break;	
 
-function signIn() {
-	setMessageValue("");
-	$$("signInError").setValue("");
-	if (WAF.directory.loginByPassword(WAF.sources.loginObject.loginName, WAF.sources.loginObject.password)) {
-		statusArray = [];
-		if ((WAF.directory.currentUserBelongsTo("Payroll")) || 
-			(WAF.directory.currentUserBelongsTo("Manager")) ||
-			(WAF.directory.currentUserBelongsTo("Administrator"))) 
-		{
-			currentUserIsManagement = true;
-			statusArray.push({statusName: ''});
-			statusArray.push({statusName: 'pending'});
-			statusArray.push({statusName: 'requested'});
-			statusArray.push({statusName: 'approved'});
-			statusArray.push({statusName: 'rejected'});
-			//statusArray.push({statusName: 'returned'});
-			statusArray.push({statusName: 'closed'});
-		} else if (WAF.directory.currentUserBelongsTo("Employee")) {
-			currentUserIsEmployee = true;
-			statusArray.push({statusName: ''});
-			statusArray.push({statusName: 'pending'});
-			statusArray.push({statusName: 'requested'});
-		}
-		WAF.sources.statusArray.sync();
+			case 3 :
+			mmNext = "04";
+			break;	
+
+			case 4 :
+			mmNext = "05";
+			break;	
+
+			case 5 :
+			mmNext = "06";
+			break;	
+
+			case 6 :
+			mmNext = "07";
+			break;	
+
+			case 7 :
+			mmNext = "08";
+			break;	
+
+			case 8 :
+			mmNext = "09";
+			break;	
+
+			case 9 :
+			mmNext = "10";
+			break;	
+
+			case 10 :
+			mmNext = "11";
+			break;	
+
+			case 11 :
+			mmNext = "12";
+			break;	
+		} //Switch mmNext
 		
-		$('#calendarButton').show();
-		$$("richText2").setValue("Signed in as : " + WAF.directory.currentUser().fullName);
-		$$("signInContainer").hide();
-		$$("signOutContainer").show();
-		$$("container1").show();
-		$("#container7").css("top", "-1px");
-		$$("container7").hide();
+		var ddNext = lastDay.getDate();
 		
-		updateUserAccountDisplay();
-		updateHolidayDisplay();
+		return(mmNext + "/" + ddNext + "/" + yyyyNext);
+		//return lastDay.toDateString();
+	}
+
+	function createEmailAccordian() {
+		$('#noteDL').children().remove();
 		
-		$$("textField1").setValue("");
-		$$("textField2").setValue("");
+		var currentPTOID = waf.sources.pTO_Request.ID;
 		
-		WAF.sources.pTO_Request.query(
-			"status !== :1 order by firstDayOff", "closed", 
-			{
+		var noteCollection = WAF.ds.Note.query("pto.ID = " + currentPTOID, {
 			onSuccess: function(event) {
-				disableInput();
-				createEmailAccordian();
-				currentPTOPrimaryKey = WAF.sources.pTO_Request.ID;
+				event.entityCollection.toArray("date, title, body", {onSuccess: function(ev) {
+					var arr = ev.result;
+					//var myHTML = '';
+					arr.forEach(function(elem) { 
+						$('<dt>', {
+							text: formatDate(ISOToDate(elem.date)) + " : " + elem.title
+						}).appendTo('#noteDL');		
+						
+						
+						var myBodyDiv = $('<div>', {
+							text: elem.body,
+							"class" : "noteBodyDiv"
+						});
+										
+						var myDD = $('<dd>');
+						myDD.append(myBodyDiv);
+						$('#noteDL').append(myDD);
+					});
+					//$('#noteContainer').html(myHTML);
+				}});
 			}
 		});
-		
-		//Closed PTOs.
-		waf.sources.pTO_Request1.query("status = :1", "closed");
-		
-	} else {
-		$$("signInError").setValue("Invalid login.");
 	}
-} //end signIn()
 
-function handleEmailMessageDialog() {
-	$$('emailMessageDialog').closeDialog(); 
-	savePTORequest($('#emailBody').val());
-}
+	function signIn() {
+		setMessageValue("");
+		$$("signInError").setValue("");
+		if (WAF.directory.loginByPassword(WAF.sources.loginObject.loginName, WAF.sources.loginObject.password)) {
+			statusArray = [];
+			if ((WAF.directory.currentUserBelongsTo("Payroll")) || 
+				(WAF.directory.currentUserBelongsTo("Manager")) ||
+				(WAF.directory.currentUserBelongsTo("Administrator"))) 
+			{
+				currentUserIsManagement = true;
+				statusArray.push({statusName: ''});
+				statusArray.push({statusName: 'pending'});
+				statusArray.push({statusName: 'requested'});
+				statusArray.push({statusName: 'approved'});
+				statusArray.push({statusName: 'rejected'});
+				//statusArray.push({statusName: 'returned'});
+				statusArray.push({statusName: 'closed'});
+			} else if (WAF.directory.currentUserBelongsTo("Employee")) {
+				currentUserIsEmployee = true;
+				statusArray.push({statusName: ''});
+				statusArray.push({statusName: 'pending'});
+				statusArray.push({statusName: 'requested'});
+			}
+			WAF.sources.statusArray.sync();
+			
+			$('#calendarButton').show();
+			$$("richText2").setValue("Signed in as : " + WAF.directory.currentUser().fullName);
+			$$("signInContainer").hide();
+			$$("signOutContainer").show();
+			$$("container1").show();
+			$("#container7").css("top", "-1px");
+			$$("container7").hide();
+			
+			updateUserAccountDisplay();
+			updateHolidayDisplay();
+			
+			$$("textField1").setValue("");
+			$$("textField2").setValue("");
+			
+			WAF.sources.pTO_Request.query(
+				"status !== :1 order by firstDayOff", "closed", 
+				{
+				onSuccess: function(event) {
+					disableInput();
+					createEmailAccordian();
+					currentPTOPrimaryKey = WAF.sources.pTO_Request.ID;
+				}
+			});
+			
+			//Closed PTOs.
+			waf.sources.pTO_Request1.query("status = :1", "closed");
+			
+		} else {
+			$$("signInError").setValue("Invalid login.");
+		}
+	} //end signIn()
+
+	function handleEmailMessageDialog() {
+		$$('emailMessageDialog').closeDialog(); 
+		savePTORequest($('#emailBody').val());
+	}
 
 //David Robbins Functions - End
 
 
 // eventHandlers// @lock
+
+	menuItem3.click = function menuItem3_click (event)// @startlock
+	{// @endlock
+		//Open PTOs
+		$('#container3').animate({ opacity: 1 }, 300);
+		$$("button9").enable();
+	};// @lock
+
+	menuItem4.click = function menuItem4_click (event)// @startlock
+	{// @endlock
+		//Closed PTOs tab
+		$('#container3').animate({ opacity: 0.2 }, 300);
+		$$("button9").disable();
+	};// @lock
 
 	button16.click = function button16_click (event)// @startlock
 	{// @endlock
@@ -684,7 +707,33 @@ function handleEmailMessageDialog() {
 		} else {
 			//$$('instuctionsRichText').setValue("Double-click line-items to update PTO request.");
 			//setMessageValue("Double-click line-items to update PTO request.");
-			savePTORequest();
+			//savePTORequest();
+			
+			//We are saving pending request here.
+			WAF.sources.pTO_Request.save({
+				onSuccess: function(event) {
+					updateUserAccountDisplay();
+					if (event.dataSource.status === "requested") {
+						setMessageValue("PTO Request Saved. An email has been sent to your manager.");
+					} else if (event.dataSource.status === "pending") {
+						setMessageValue("PTO Request Saved. Double-click line-items to update PTO request.");
+					} else {
+						setMessageValue("PTO Request Saved.");
+					}
+				
+					WAF.sources.pTO_Request.addEntity(event.dataSource.getCurrentElement());
+					//WAF.sources.pTO_Request.selectByKey(primKey);
+					WAF.sources.pTO_Request.selectByKey(event.dataSource.ID);
+					currentPTOPrimaryKey = event.dataSource.ID;
+					createEmailAccordian();
+					disableInput();
+				},
+				onError: function(error) {
+					setMessageValue(error['error'][0].message + " (" + error['error'][0].errCode + ")", true);
+		           	//Ask Laurent if serverRefresh supports declareDependencies or autoExpand.
+		           	WAF.sources.pTO_Request.serverRefresh({forceReload: true});
+				}
+			});
 		}
 	};// @lock
 
@@ -888,6 +937,8 @@ function handleEmailMessageDialog() {
 	};// @lock
 
 // @region eventManager// @startlock
+	WAF.addListener("menuItem3", "click", menuItem3.click, "WAF");
+	WAF.addListener("menuItem4", "click", menuItem4.click, "WAF");
 	WAF.addListener("button16", "click", button16.click, "WAF");
 	WAF.addListener("button15", "click", button15.click, "WAF");
 	WAF.addListener("button2", "click", button2.click, "WAF");

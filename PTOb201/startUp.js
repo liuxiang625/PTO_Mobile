@@ -10,7 +10,7 @@
 
 directory.setLoginListener("ptoLogin");
 
-var theEmailWorker = new SharedWorker("sharedWorkers/emailDaemon.js", "emailDaemon");
+//var theEmailWorker = new SharedWorker("sharedWorkers/emailDaemon.js", "emailDaemon");
 
 if (loginByPassword("admin", "admin")) {
 	//Seed Users
