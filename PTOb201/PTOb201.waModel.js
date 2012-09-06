@@ -322,6 +322,14 @@ guidedModel =// @startlock
 	},
 	PTO_Request :
 	{
+		collectionMethods :
+		{// @endlock
+			getIDs:function()
+			{// @lock
+				var requestIDs = this.toArray("ID");
+				return requestIDs;
+			}// @startlock
+		},
 		entityMethods :
 		{// @endlock
 			getStatusList:function()
