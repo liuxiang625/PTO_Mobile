@@ -322,14 +322,6 @@ guidedModel =// @startlock
 	},
 	PTO_Request :
 	{
-		collectionMethods :
-		{// @endlock
-			getIDs:function()
-			{// @lock
-				var requestIDs = this.toArray("ID");
-				return requestIDs;
-			}// @startlock
-		},
 		entityMethods :
 		{// @endlock
 			getStatusList:function()
@@ -523,7 +515,10 @@ guidedModel =// @startlock
 								firstDayOff: formatDate(this.firstDayOff),
 								lastDayOff: formatDate(this.lastDayOff),
 								requestLineItems: requestLineItemsArray,
-								notes: this.emailText
+								notes: this.emailText,
+								ptoID: this.ID,
+								approvePassword: this.approvePassword,
+								approveID: this.approveID
 								//requestLineItems: [{name: "dave"}, {name: "tom"}, {name: "bill"}]
 						});
 						
@@ -604,6 +599,11 @@ guidedModel =// @startlock
         			this.requestor = myUser;  //New
         			this.status = "pending";
         			this.authorizationDate = null;
+        			
+        			//so manager can authorize from email
+        			this.approvePassword = makeid();
+        			this.approveHA1Key = directory.computeHA1(this.approveID, this.approvePassword);	
+        			
         		} else {
         			err = { error : 4, errorMessage: "Your request is invalid. Have Human Resources check your User record." };
 				} //if (user != null)
@@ -626,8 +626,10 @@ guidedModel =// @startlock
 				var myCurrentUser = currentUser(); // Get the current user.
 				var myUserV = ds.User.find("ID = :1", myCurrentUser.ID);
 				
+				if (sessionRef.belongsTo("Internal")) {
+					//ok to update
 				
-				if (sessionRef.belongsTo("Administrator")) {
+				} else if (sessionRef.belongsTo("Administrator")) {
 					err = { error : 3099, errorMessage: "The Administrator is not allowed to update PTO requests."};
 					return err;
 					
@@ -691,9 +693,6 @@ guidedModel =// @startlock
 					}
 					*/
 					
-					
-					
-
 						
 				} else if (sessionRef.belongsTo("Employee")) {
 					//Does this entity belong to the employee that is signed in?

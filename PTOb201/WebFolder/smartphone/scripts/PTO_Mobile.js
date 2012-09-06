@@ -27,111 +27,97 @@ function logOutButton_clicked() {
 
 function loadPTOs(ptoStatus) {
 	var holidaysArray = [];
-    ds.Holiday.all({orderBy:"date", onSuccess:function(event) {
-		event.entityCollection.toArray("name,date", {onSuccess: function(ev) {
-		holidaysArray = ev.result;
-	WAF.ds.User.query("fullName = :1",WAF.directory.currentUser().fullName , {
-    		autoExpand: "pTO_RequestCollection",
-    		onSuccess: function(event) {
-    			event.entityCollection.forEach({
-    				onSuccess: function(ev) {
-    					var ptoCollectionRel = ev.entity.pTO_RequestCollection.relEntityCollection;//get the PTO_request collection
-    					ptoCollectionRel.orderBy("firstDayOff asc");
-    					if (ptoCollectionRel.length > 0) {
-    						ptoCollectionRel.forEach({// browse PTO reqeusts
-    							onSuccess: function(eventRelPTO) {
-    							var ptoRequest = eventRelPTO.entity;
-    							var requestStatus = ptoRequest.status.getValue();
-    							var requestID = ptoRequest.ID.getValue();
-    							// Call server side method which returns the requestLineItems
-								var requestLineItems = ptoRequest.getLineItemsRange(ptoRequest.firstDayOff.getValue(), ptoRequest.returnToWorkDate.getValue());
-									//if (requestStatus != "commit") {
-										if (requestStatus == ptoStatus) {
-										var ptoHours = 0;
-										var floatingDays = 0; 
-										var holiday = formatDate(ISOToDate(holidaysArray[0].date));
-										var lastDayOff = formatDate(ptoRequest.lastDayOff.getValue());
-										requestLineItems.forEach({
-											onSuccess: function(ev3) {
-												var theHours = ev3.entity.hoursRequested.getValue();
-												ptoHours += theHours;
-												(!theHours & ev3.entity.compensation.getValue()== "Floating Day"? floatingDays += 1: floatingDays += 0);
-											}
-										});
-               							var $element = $('<div  data-role="collapsible" data-collapsed="true" style="background: #ddd" '
-                   						 +'><h3>' 
-                   						+ formatDate(ptoRequest.firstDayOff.getValue()) + " - " 
-                  						+ lastDayOff + "  PTO " 
-                   						+ requestStatus + '</h3>' //<!--p style="padding-left: 15px;margin: 0"-->
-                   						+'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">PTO hours: <br />Floating days: <br />Return date: <br />Notes:</p></div>'
-                   						+'<div class="ui-block-b"><p style="margin: 0">'+ptoHours+'<br />'+floatingDays+'<br />'+formatDate(ptoRequest.returnToWorkDate.getValue())+'<br />'+(ptoRequest.notes.getValue()?ptoRequest.notes.getValue():"None")+'</p></div></div>'
-                   						+ (ptoStatus == "pending"?'<div  style="padding-right:15px;padding-left:15px;margin: 0" class="ui-collapsible ui-collapsible-inset ui-collapsible-collapsed" data-content-theme="c" data-theme="b" data-role="collapsible"><h3 class="ui-collapsible-heading ui-collapsible-heading-collapsed"><a class=" ui-collapsible-heading-toggle ui-btn ui-fullsize ui-btn-icon-left ui-corner-top ui-corner-bottom ui-btn-up-b ui-btn-hover-b" href="#" data-corners="false" data-shadow="false" data-iconshadow="true" data-wrapperels="span" data-icon="plus" data-iconpos="left" data-theme="c" data-mini="true" style="text-align:center"><span id="'+ requestID +'"  class=" submit ui-btn-inner ui-corner-top ui-corner-bottom"><span class="ui-btn-text">Submit This Request</span></a></h3></div>':'</div>'))
-                    						.appendTo(ptoStatus == "pending"?$('#collapsibleSet'):('#collapsibleSetForApprovedPTOs'));
-                   						$element.collapsible();
-//                 						holidaysArray.forEach(function(elem) {
-//                   							if ( ISOToDate(elem.date) > new Date() & ISOToDate(elem.date) < ptoRequest.firstDayOff.getValue() & ptoStatus == "approved") {
-//                   								holidaysArray.splice(holidaysArray.indexOf(elem),1);
-//												var $holidayElement = $('<div  data-role="collapsible" data-collapsed="true" style="background: #ddd" '
-//                   								+'><h3>' 
-//                   								+ formatDate(ISOToDate(elem.date)) + "- " + formatDate(ISOToDate(elem.date)) + '  ' + elem.name
-//                   								+ '</h3>' //<!--p style="padding-left: 15px;margin: 0"-->
-//                   								+'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">Return date: </p></div>'
-//                   								+'<div class="ui-block-b"><p style="margin: 0">'+getNextWorkDay(ISOToDate((elem.date)))+'</p></div></div>'
-//                   								+ '</div>')
-//                    							.prependTo(($element));
-//                   								$holidayElement.collapsible();
-//								}
-//                   			});
-                   						
-               						}
-								}
-    						});
-    					}
-    				},
-    				atTheEnd: function(end){
-    					holidaysArray.forEach(function(elem) {
-                   			if ( ISOToDate(elem.date) > new Date() & ptoStatus == "approved" )	{
-                   				//holidaysArray.splice(holidaysArray.indexOf(elem),1);
-								var $holidayElement = $('<div  data-role="collapsible" data-collapsed="true" style="background: #ddd" '
-                   								+'><h3>' 
-                   								+ formatDate(ISOToDate(elem.date)) + "- " + formatDate(ISOToDate(elem.date)) + '  ' + elem.name
-                   								+ '</h3>' //<!--p style="padding-left: 15px;margin: 0"-->
-                   								+'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">Return date: </p></div>'
-                   								+'<div class="ui-block-b"><p style="margin: 0">'+getNextWorkDay(ISOToDate((elem.date)))+'</p></div></div>'
-                   								+ '</div>')
-                    							.appendTo(('#collapsibleSetForApprovedPTOs'));
-                   								$holidayElement.collapsible();
-                   			}
-                   		});
-					}
-    			});
-    		}
-    	});
-    	}});
-	}});
+	ds.Holiday.all({
+	    orderBy: "date",
+	    onSuccess: function(event) {
+	        event.entityCollection.toArray("name,date", {
+	            onSuccess: function(ev) {
+	                holidaysArray = ev.result;
+	                WAF.ds.User.query("fullName = :1", WAF.directory.currentUser().fullName, {
+	                    autoExpand: "pTO_RequestCollection",
+	                    onSuccess: function(event) {
+	                        event.entityCollection.forEach({
+	                            onSuccess: function(ev) {
+	                                var ptoCollectionRel = ev.entity.pTO_RequestCollection.relEntityCollection; //get the PTO_request collection
+	                                ptoCollectionRel.orderBy("firstDayOff asc");
+	                                if (ptoCollectionRel.length > 0) {
+	                                    ptoCollectionRel.forEach({ // browse PTO reqeusts
+	                                        onSuccess: function(eventRelPTO) {
+	                                            var ptoRequest = eventRelPTO.entity;
+	                                            var requestStatus = ptoRequest.status.getValue();
+	                                            var requestID = ptoRequest.ID.getValue();
+	                                            // Call server side method which returns the requestLineItems
+	                                            var requestLineItems = ptoRequest.getLineItemsRange(ptoRequest.firstDayOff.getValue(), ptoRequest.returnToWorkDate.getValue());
+	                                            if (requestStatus == ptoStatus) {
+	                                                var ptoHours = 0;
+	                                                var floatingDays = 0;
+	                                                var holiday = formatDate(ISOToDate(holidaysArray[0].date));
+	                                                var lastDayOff = formatDate(ptoRequest.lastDayOff.getValue());
+	                                                requestLineItems.forEach({
+	                                                    onSuccess: function(ev3) {
+	                                                        var theHours = ev3.entity.hoursRequested.getValue();
+	                                                        ptoHours += theHours;
+	                                                        (!theHours & ev3.entity.compensation.getValue() == "Floating Day" ? floatingDays += 1 : floatingDays += 0);
+	                                                    }
+	                                                });
+	                                                //build PTO request element using two grid blocks in a collapsiable
+	                                                var $element = $('<div  data-role="collapsible" data-collapsed="true" style="background: #ddd" ' 
+													+ '><h3>' + formatDate(ptoRequest.firstDayOff.getValue()) 
+													+ " - " + lastDayOff + "  PTO "
+													+ requestStatus + '</h3>' //<!--p style="padding-left: 15px;margin: 0"-->
+	                                                +'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">PTO hours: <br />Floating days: <br />Return date: <br />Notes:</p></div>'
+	                                                + '<div class="ui-block-b"><p style="margin: 0">'
+	                                                + ptoHours + '<br />' + floatingDays + '<br />'
+	                                                + formatDate(ptoRequest.returnToWorkDate.getValue()) + '<br />'
+	                                                + (ptoRequest.notes.getValue() ? ptoRequest.notes.getValue() : "None") + '</p></div></div>' 
+	                                                + (ptoStatus == "pending" ? '<div  style="padding-right:15px;padding-left:15px;margin: 0" class="ui-collapsible ui-collapsible-inset ui-collapsible-collapsed" data-content-theme="c" data-theme="b" data-role="collapsible"><h3 class="ui-collapsible-heading ui-collapsible-heading-collapsed"><a class=" ui-collapsible-heading-toggle ui-btn ui-fullsize ui-btn-icon-left ui-corner-top ui-corner-bottom ui-btn-up-b ui-btn-hover-b" href="#" data-corners="false" data-shadow="false" data-iconshadow="true" data-wrapperels="span" data-icon="plus" data-iconpos="left" data-theme="c" data-mini="true" style="text-align:center"><span id="' + requestID + '"  class=" submit ui-btn-inner ui-corner-top ui-corner-bottom"><span class="ui-btn-text">Submit This Request</span></a></h3></div>' : '</div>'))
+	                                                .appendTo(ptoStatus == "pending" ? $('#collapsibleSet') : ('#collapsibleSetForApprovedPTOs'));
+	                                                $element.collapsible();
+	                                            }
+	                                        }
+	                                    });
+	                                }
+	                            },
+	                            atTheEnd: function(end) { //at the end of loop, add the list of upcoming holidays, need sorting with PTOs in future. 
+	                                holidaysArray.forEach(function(elem) {
+	                                    if (ISOToDate(elem.date) > new Date() & ptoStatus == "approved") {
+	                                        var $holidayElement = $('<div  data-role="collapsible" data-collapsed="true" style="background: #ddd" ' + '><h3>' 
+											+ formatDate(ISOToDate(elem.date)) + "- " 
+											+ formatDate(ISOToDate(elem.date)) + '  ' + elem.name + '</h3>' //<!--p style="padding-left: 15px;margin: 0"-->
+	                                        +'<div class="ui-grid-b" style="padding-left:15px;margin: 0"><div class="ui-block-a" ><p style="margin: 0">Return date: </p></div>' + '<div class="ui-block-b"><p style="margin: 0">'
+	                                        + getNextWorkDay(ISOToDate((elem.date))) + '</p></div></div>' + '</div>')
+	                                        .appendTo(('#collapsibleSetForApprovedPTOs'));
+	                                        $holidayElement.collapsible();
+	                                    }
+	                                });
+	                            }
+	                        });
+	                    }
+	                });
+	            }
+	        });
+	    }
+	});
 };
 
-function reloadPTOs() {
+function reloadPTOs() {// clean up and reload PTO in both tabs
 	$("#collapsibleSet").empty();
 	$("#collapsibleSetForApprovedPTOs").empty();
 	loadPTOs('pending');
 	loadPTOs('approved');
 }
-function formatDate(date) {
+function formatDate(date) {// ultility to formate date to mm/dd/yyyy
 	return (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear()
 };
 
-function createDate(dateString) {
+function createDate(dateString) {// create Date object frome mm-dd-yyyy 
 	var dateArray = dateString.split("-");
 	return new Date(dateArray[0] , dateArray[1] -1, dateArray[2]);
 }
 function newPTOButton_clicked() {
 	WAF.sources.pTO_Request.newEntity({
-			//autoExpand: "requestor",
 			onSuccess: function(event) {
-				//enableInput();
 				WAF.sources.pTO_Request.setCurrentEntity(event.result);
-				//$$('textField3').focus();
 			}
 		});
 
@@ -160,29 +146,13 @@ function saveButton_clicked() {
 				$("textarea").val("");
 				$('#errorlog > div').remove();
 				$.mobile.changePage("#page6", { transition: "slideup"});
-//				/**/
-//				WAF.sources.pTO_Request.all({
-//					onSuccess: function (event) {
-//						WAF.sources.pTO_Request.selectByKey(primKey);
-//						disableInput();
-//				}});
 				
 			},
            	onError: function(error) {
-//           		$('#errorDiv1').html(error['error'][0].message + " (" + error['error'][0].errCode + ")");
-           		//Ask Laurent if serverRefresh supports declareDependencies or autoExpand.
            		console.log(error['error'][0].message + " (" + error['error'][0].errCode + ")");
            		$('#errorlog > div').remove();
         		$('<div></div>').append(error['error'][0].message + " (" + error['error'][0].errCode + ")").appendTo('#errorlog');
-         		/*
-           		WAF.sources.pTO_Request.all({
-					onSuccess: function (event) {
-						WAF.sources.pTO_Request.selectByKey(primKey);
-				}});
-				*/
-          	}
-      	
-				
+          	}	
       	});
 };
 
@@ -209,7 +179,7 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 // @endregion// @endlock
 
 // eventHandlers// @lock
-	$(".submit").live('tap', function(event) {
+	$(".submit").live('tap', function(event) {//add tap event handler to submit class for request submission
 	    var requestKey = this.id;
 	    WAF.sources.pTO_Request.selectByKey(requestKey, {
 	        onSuccess: function(event) {
@@ -229,15 +199,6 @@ WAF.onAfterInit = function onAfterInit() {// @lock
 	});
 	documentEvent.onLoad = function documentEvent_onLoad (event)// @startlock
 	{// @endlock
-//		 var dates = $('#startDate, #endDate').datepicker({
-//         	minDate: new Date()
-//          	//changeMonth: true,
-////          	onSelect: function(selectedDate) {
-////                var option = this.id == 'enterfrom' ? 'minDate' : 'maxDate',
-////                dates.not(this).datepicker('option', option, $(this).datepicker('getDate'));
-////         	}
-//    	});
-		
 		if (WAF.directory.currentUser() === null) {
 				$.mobile.changePage("#page1", { transition: "pop"});
 				

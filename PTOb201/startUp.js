@@ -7,6 +7,8 @@
 //HTTP Request Handler
 //addHttpRequestHandler('/testEcho', 'requestHandlers.js', 'echoHandler');
 //addHttpRequestHandler('/calendarData', 'requestHandlers.js', 'fullCalendarDispatcher');
+addHttpRequestHandler('/ptoApproval', 'requestHandlers.js', 'ptoApproval');
+
 
 directory.setLoginListener("ptoLogin");
 
@@ -306,7 +308,7 @@ if (loginByPassword("admin", "admin")) {
 		new ds.Holiday({name: 'Independence Day', date: new Date("July 04, 2012")}).save();
 		new ds.Holiday({name: 'Labor Day', date: new Date("September 03, 2012")}).save();
 		new ds.Holiday({name: 'Christmas', date: new Date("December 25, 2012")}).save();
-		new ds.Holiday({name: 'New years Eve', date: new Date("December 31, 2012")}).save();
+		
 	}
 	catch (err)
 	{
