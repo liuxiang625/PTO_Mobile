@@ -2,6 +2,8 @@
 WAF.onAfterInit = function onAfterInit() {// @lock
 
 // @region namespaceDeclaration// @startlock
+	var button8 = {};	// @button
+	var dataGrid1 = {};	// @dataGrid
 	var button3 = {};	// @button
 	var button21 = {};	// @button
 	var button19 = {};	// @button
@@ -36,6 +38,8 @@ function signIn() {
 			$$("container13").hide();
 			$$("textField11").setValue("");
 			$$("textField12").setValue("");
+			$$("signInError").setValue("");
+			
 		} else {
 			WAF.directory.logout();
 			$$("signInError").setValue("Only the Administrator can sign in to this application.");
@@ -46,6 +50,24 @@ function signIn() {
 	}
 }
 // eventHandlers// @lock
+
+	button8.click = function button8_click (event)// @startlock
+	{// @endlock
+		waf.sources.holiday.save({
+			onSuccess: function(event) {
+				$("#errorDiv1").html("Holiday saved on the server.");
+			},
+			onError: function(error) {
+				$("#errorDiv1").html(error['error'][0].message + " (" + error['error'][0].errCode + ")");
+				//error['error'][0].message + " (" + error['error'][0].errCode + ")"
+			}	
+		});
+	};// @lock
+
+	dataGrid1.onRowClick = function dataGrid1_onRowClick (event)// @startlock
+	{// @endlock
+		$("#errorDiv1").html("");
+	};// @lock
 
 	button3.click = function button3_click (event)// @startlock
 	{// @endlock
@@ -180,6 +202,14 @@ function signIn() {
 
 	documentEvent.onLoad = function documentEvent_onLoad (event)// @startlock
 	{// @endlock
+		$("#textField3").attr("disabled", "disabled"); //Holiday Date
+		
+		
+		WAF.sources.user.declareDependencies("myManager");
+		classificationArray = [];
+		classificationArray.push({title: 'Full-Time'});
+		classificationArray.push({title: 'Part-Time'});
+		WAF.sources.classificationArray.sync();
 		
 		roleArray = [];
 		roleArray.push({title: 'Employee'});
@@ -190,6 +220,7 @@ function signIn() {
 
 		if (WAF.directory.currentUser() === null) {
 			$$("richText1").setValue("");
+			$$("signInError").setValue("");
 			
 			//$$("appContainer").hide();
 			$("#appContainer").hide();
@@ -198,7 +229,8 @@ function signIn() {
 			$$("signOutContainer").hide();
 			$("#container13").css("top", "80px");
 			$("#container13").css("left", "0px");
-			$$("container13").show();		
+			$$("container13").show();	
+				
 		} else {
 			$$("richText1").setValue("Signed in as : " + WAF.directory.currentUser().fullName);
 			
@@ -221,9 +253,13 @@ function signIn() {
 		// to the next line because input element grows by 2 px.
 		var inputWidth = $('#combobox3 input').css('width');
 		$('#combobox3 input').css('width', "-=2");	
+		
+		$( "#textField10" ).datepicker();
 	};// @lock
 
 // @region eventManager// @startlock
+	WAF.addListener("button8", "click", button8.click, "WAF");
+	WAF.addListener("dataGrid1", "onRowClick", dataGrid1.onRowClick, "WAF");
 	WAF.addListener("button3", "click", button3.click, "WAF");
 	WAF.addListener("button21", "click", button21.click, "WAF");
 	WAF.addListener("button19", "click", button19.click, "WAF");

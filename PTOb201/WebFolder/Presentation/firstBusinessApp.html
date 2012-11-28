@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html><html>
+    <head>
+        <title>Wakanda - First Business Application</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <meta name="generator" content="Wakanda GUIDesigner"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+    	<meta name="wakanda-version" content="Dev build 0.118752"/>
+		<meta name="wakanda-build" content="0.118752"/>		
+	
+		
+		<meta name="WAF.config.loadCSS" id="waf-palette" content="/walib/WAF/widget/palette/css/widget-palette-default.css"/>
+		<meta name="WAF.config.loadCSS" content="/Presentation/revealJS/css/main.css"/>
+		<meta name="WAF.config.loadCSS" content="/Presentation/revealJS/css/theme/beige.css"/>
+		<meta name="WAF.config.loadCSS" content="/Presentation/highlight/styles/zenburn.css"/>
+		<meta name="WAF.config.loadCSS" content="/Presentation/styles/custom.css"/>
+		<meta name="WAF.config.loadCSS" content="/application.css"/>
+		<meta name="WAF.config.loadCSS" id="waf-interface-css" content="styles/firstBusinessApp.css"/>
+		<meta name="WAF.config.loadJS" content="/Presentation/revealJS/lib/js/head.min.js"/>
+		<meta name="WAF.config.loadJS" content="/Presentation/revealJS/js/reveal.min.js"/>
+		<meta name="WAF.config.loadJS" content="/Presentation/scripts/slideDeck.js"/>
+		<meta name="WAF.config.loadJS" content="/Presentation/revealJS/lib/js/highlight.js"/>
+		<meta name="WAF.config.loadJS" content="/Presentation/highlight/highlight.pack.js"/>
+		<meta id="waf-project-css" name="WAF.config.loadCSS" content="/application.css"/>
+</head>
+<body id="waf-body" data-viewport-width="device-width" data-viewport-minimum-scale="1.0" data-viewport-maximum-scale="1.0" data-viewport-initial-scale="1.0" data-type="document" data-theme="default" data-platform="desktop" data-lib="WAF" data-apple-meta-tags-status-bar="default" class="default" style="visibility:hidden;">
+	
+<div class="reveal">
+<!-- Used to fade in a background when a specific slide state is reached -->
+<div class="state-background"></div>
+
+<div class="slides">
+
+<section>
+<h2>Create Your First Business Application</h2>
+<br/>
+<p class="davequote">
+There are many ways to use Wakanda. In short, this presentation is the steps I take to create secure, multi-user business applications using Wakanda.
+</p>
+<p id="author">
+	<span class="green">dave@wakanda.org</span>
+	<br/>
+	October 28th, 2012
+</p>
+</section>
+
+<section>
+	<div class="middle">
+	<h2>Steps For Creating Your Wakanda Business Application</h2>
+	</div>
+</section>
+
+<section>
+	<section>
+	<div class="middle">
+	<h2>1. Create Groups that Map to your User Types 
+	<br/>
+	<br/>
+	<span class="wakandaKeyword">Wakanda Directory</span>
+	</h2>
+	</div>
+	</section>
+
+
+	<section>
+	<div class="middle">
+	<h2>2. Create Your Data Model
+	<br/>
+	<br/>
+	<span class="wakandaKeyword">Wakanda Model Editor</span></h2>
+	<br/>
+	<p class="fragment">Create a User dataclass to manage users of your application.</p>
+	</div>
+	</section>
+
+	<section>
+	<div class="middle">
+	<h2>3. Secure your Data Classes using Scope and Permissions.
+	<br/>
+	<br/>
+	<span class="wakandaKeyword">Wakanda Model Editor</span></h2>
+	<br/>
+	</div>
+	</section>
+
+	<section>
+	<div class="middle">
+	<h2>4. Create Your Interface Page 
+	<br/>
+	<br/>
+	<span class="wakandaKeyword">Wakanda GUI Editor</span>. 
+	<br/>
+	<br/>
+	<span class="fragment alert">Just Kidding...Not Yet!</span></h2>
+	</div>
+	</section>
+
+	<section>
+	<div class="middle">
+	<h2>4. Restrict Access To Data 
+	<br/>
+	<br/>
+	<span class="wakandaKeyword">onRestrictingQuery</span>
+	</h2>
+	</div>
+	</section><!--
+	<section>
+	<div class="middle">
+	<h2>5. Create <span class="wakandaKeyword">onRestrictingQuery</span>  Events for Public Facing Data Classes.</h2>
+	</div>
+	</section>
+	-->
+
+	<section>
+	<div class="middle">
+	<h2>5. Create Custom Login Listener</h2>
+	</div>
+	</section>
+
+
+	<section>
+	<div class="middle">
+	<h2>6. Create Your Business Rules on Wakanda Server.</h2>
+	</div>
+	</section>
+
+	<section>
+	<div class="middle">
+	<h2>7. Create an Interface Page So You Can Test Your Business Rules.
+	<br/>
+	<br/>
+	<span class="fragment alert">Got You Again. Not Yet!</span>
+	</h2>
+	</div>
+	</section>
+
+	<section>
+	<div class="middle">
+	<h2>7. Test Your Business Rules From A Server-Side JavaScript Page.</h2>
+	</div>
+	</section>
+
+	<section>
+	<div class="middle">
+	<h2>8. And Finally... <span class="fragment subTitleColor">anyone...anyone</span> <span class="fragment">
+	<br/>create your...</span><span class="fragment subTitleColor">anyone...anyone</span>
+	<br/>
+	<br/>
+	<span class="fragment">
+	Interface Page
+	<br/>
+	<br/>
+	<span class="wakandaKeyword">Wakanda GUI Editor</span>
+	</span>
+	</h2>
+	</div>
+	</section>
+</section>
+
+
+
+
+<section>
+<h2>5: User Dataclass and Login Listener</h2>
+	<br/>
+	<section>
+	<p class="davequote">
+	The Wakanda Directory is the simplest way to manage Users and Groups. But this approach will not be flexible enough for all applications.
+	</p>
+	</section>
+
+	<section>
+	<img src="/Presentation/img/UserDataclass.png"/>
+	</section>
+	
+	<section>
+	<br/>
+	<h3>startUp.js <span class="subTitleColor">(set as active bootstrap)</span></h3>
+	<pre><code>directory.setLoginListener("ptoLogin");</code></pre>
+	</section>
+
+	<section>
+	<h3>scripts/required.js</h3>
+<pre><code>function ptoLogin(userName, password) {
+  var myUser = ds.User({login:userName});
+  if (myUser.validatePassword(password)) {
+    <span class="fragment">var theGroups = [];
+    switch (myUser.role) {
+      case "Admin":
+      theGroups = ['Administrator'];
+      break;
+
+      case "Manager":
+      theGroups = ['Manager'];
+      ...
+    }</span>
+      
+    <span class="fragment">return {name:myUser.login, belongsTo:theGroups, ...};</span>
+  }
+}</code></pre>
+	</section>
+
+	<section>
+	<h3><span class="alert">Houston we have a problem.</span></h3>
+	<br/>
+	<p class="davequote">
+	The user session requires membership in the Administrator group to load the entities from the User dataclass for the login listener to work.
+	</p>
+	</section>
+
+	<section>
+	<h3><span class="wakandaKeyword">Session Promotion To The Resue!</span></h3>
+	<br/>
+<pre><code>function ptoLogin(userName, password) {
+  <span class="fragment">var sessionRef = currentSession();
+  var pToken = sessionRef.promoteWith("Administrator");</span>
+  
+  var myUser = ds.User({login:userName});
+	
+  <span class="fragment">sessionRef.unPromote(pToken);</span>
+}</code></pre>
+	</section>	
+</section>
+
+
+
+
+<section>
+<h2>4: <span class="wakandaKeyword">onRestrictingQuery</span> Event</h2>
+<br/>
+
+<section>
+<img src="/Presentation/img/ModelEditor.png"/>
+</section>
+
+<section>
+<pre><code>onRestrictingQuery:function()
+   //create an empty collection. Return this by default.
+   var result = ds.PTO_Request.createEntityCollection();
+   <span class="fragment">
+   //Load User entity.
+   var myCurrentUser = currentUser(); 
+   var sessionRef = currentSession(); 
+   </span><span class="fragment">
+   if (currentSession().belongsTo("Administrator")) {
+      result = ds.PTO_Request.all();
+   } else {
+      result = ds.PTO_Request.query("requestor.login = :1",          myCurrentUser.name);
+   }
+   </span>
+   return result;
+}</code></pre>
+</section>
+</section>
+
+<section>
+<h2>6: Business Rules - <span class="wakandaKeyword">onValidate</span> Event</h2>
+<br/>
+
+<section>
+<img src="/Presentation/img/onValidate.png"/>
+</section>
+
+<section>
+<pre><code>onValidate:function() {
+  <span class="fragment">if (this.status === "closed") {
+    return {error : 555, errorMessage: "Invalid status."};
+  }</span>
+  
+  <span class="fragment">//Check against value stored on server
+  var theClass = this.getDataClass(); //get the dataclass
+  var theClassName = theClass.getName(); //get the name
+  var oldEntity = theClass(this.getKey()); //entity on disk
+  
+  if (oldEntity.status === "approved") {
+    return {error : 4, errorMessage: "Already approved."};
+  }</span>
+}</code></pre>
+</section>
+</section>
+
+
+</div>	<!--end div class slides-->
+
+<!-- The navigational controls UI -->
+
+<aside class="controls">
+	<a href="#" class="left">◄</a>
+    <a href="#" class="right">►</a>
+   	<a href="#" class="up">▲</a>
+    <a href="#" class="down">▼</a>
+</aside>
+
+
+<!-- Presentation progress bar -->
+<div class="progress"><span></span></div>
+     
+
+</div>	<!--end div class reveal-->
+<div id="footer"><p>Wakanday 2012</p></div>
+		<script type="text/javascript" src="/waLib/WAF/Loader.js"></script>
+</body>
+</html>

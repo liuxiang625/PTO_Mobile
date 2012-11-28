@@ -64,37 +64,39 @@ function buildUserRequestAccordian() {
 						ptoCollectionRel.forEach({
 							userData: {employee: theEmployeeName},
 							onSuccess: function(eventRelPTO) {
-								var requestLineItems = eventRelPTO.entity.getLineItemsRange(WAF.sources.dateRangeObject.start, WAF.sources.dateRangeObject.end);
-								requestLineItems.forEach({
-									userData: {employee: eventRelPTO.userData.employee},
-									onSuccess: function(ev3) {
-										var theEmployee = ev3.userData.employee;
-										console.log("Emp: " + theEmployee);
-										var theComp = ev3.entity.compensation.getValue();
-										var theDate = formatDate(ev3.entity.dateRequested.getValue());
-										var theHours = ev3.entity.hoursRequested.getValue();
-										
-										var myDateDiv = $('<div>', {
-											text: theDate,
-											"class" : "accordianDiv"
-										});
-										
-										var myCompensationDiv = $('<div>', {
-											text: theComp,
-											"class" : "accordianDiv"
-										});
-										
-										var myHoursDiv = $('<div>', {
-											text: theHours,
-											"class" : "accordianDiv"
-										});
-										
-										var myDD = $('<dd>');
-										myDD.append(myDateDiv, myCompensationDiv, myHoursDiv);
-										$('#employeeRequestsDL').append(myDD);
-										myDD.prev('dt').css('background', 'LightGoldenrodYellow');		
-									} ////end requestLineItems.forEach
-								});	//end requestLineItems.forEach
+								if (eventRelPTO.entity.status.getValue() === "approved") {
+									var requestLineItems = eventRelPTO.entity.getLineItemsRange(WAF.sources.dateRangeObject.start, WAF.sources.dateRangeObject.end);
+									requestLineItems.forEach({
+										userData: {employee: eventRelPTO.userData.employee},
+										onSuccess: function(ev3) {
+											var theEmployee = ev3.userData.employee;
+											console.log("Emp: " + theEmployee);
+											var theComp = ev3.entity.compensation.getValue();
+											var theDate = formatDate(ev3.entity.dateRequested.getValue());
+											var theHours = ev3.entity.hoursRequested.getValue();
+											
+											var myDateDiv = $('<div>', {
+												text: theDate,
+												"class" : "accordianDiv"
+											});
+											
+											var myCompensationDiv = $('<div>', {
+												text: theComp,
+												"class" : "accordianDiv"
+											});
+											
+											var myHoursDiv = $('<div>', {
+												text: theHours,
+												"class" : "accordianDiv"
+											});
+											
+											var myDD = $('<dd>');
+											myDD.append(myDateDiv, myCompensationDiv, myHoursDiv);
+											$('#employeeRequestsDL').append(myDD);
+											myDD.prev('dt').css('background', 'LightGoldenrodYellow');		
+										} ////end requestLineItems.forEach
+									});	//end requestLineItems.forEach
+								}
 							} // end ptoCollectionRel.forEach onSuccess
 						}); // end ptoCollectionRel.forEach
 					} //end if (ptoCollectionRel.length > 0) 

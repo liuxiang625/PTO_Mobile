@@ -2,8 +2,6 @@
 WAF.onAfterInit = function onAfterInit() {// @lock
 
 // @region namespaceDeclaration// @startlock
-	var menuItem3 = {};	// @menuItem
-	var menuItem4 = {};	// @menuItem
 	var button16 = {};	// @button
 	var button15 = {};	// @button
 	var button2 = {};	// @button
@@ -147,11 +145,13 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 		return m[1] + 1;
 	}
 
-	function elapsedPayPeriods(userEntity) {
+	//function elapsedPayPeriods(userEntity) {
+	function elapsedPayPeriods(seedPTOHours, seedPTOAccrualRate, seedPTODate) {
 		var ptoHoursAccruedToDate;
-		var seedPTOHours = userEntity.ptoHours.getValue();
-		var seedPTOAccrualRate= userEntity.ptoAccrualRate.getValue();
-		var seedPTODate = userEntity.ptoSeedDate.getValue();
+		//var seedPTOHours = userEntity.ptoHours.getValue();
+		//var seedPTOAccrualRate= userEntity.ptoAccrualRate.getValue();
+		//var seedPTODate = userEntity.ptoSeedDate.getValue();
+		
 		//Figure out how many pay periods have passed from PTO Seed Date
 		// until current date.
 		var todaysDate = new Date();
@@ -174,31 +174,61 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 		return numberOfPayPeriodsElapsed;
 	}
 
+	function displayCurrentAccount() {
+		var myCurrentUser = WAF.directory.currentUser(); // Get the current user
+		var myHTML;
+		var currentPTOUserID = WAF.sources.pTO_Request.getAttribute("requestor.ID").getValue();
+		
+		if (myCurrentUser.ID === currentPTOUserID) {
+			myHTML = '';
+		} else {
+			myHTML = '';
+			var currentPTOUserName = WAF.sources.pTO_Request.getAttribute("requestor.fullName").getValue();
+			var currentPTOFloats = WAF.sources.pTO_Request.getAttribute("requestor.floatingDays").getValue();
+			var currentPTOHours = WAF.sources.pTO_Request.getAttribute("requestor.ptoHours").getValue();
+			var currentPTOAccrualRate = WAF.sources.pTO_Request.getAttribute("requestor.ptoAccrualRate").getValue();
+			var currentPTOSeedDate =  WAF.sources.pTO_Request.getAttribute("requestor.ptoSeedDate").getValue();
+			var currentNumberOfElapsedPayPeriods = elapsedPayPeriods(currentPTOHours, currentPTOAccrualRate, currentPTOSeedDate);
+			var currentPTOHours = currentPTOHours + (currentNumberOfElapsedPayPeriods * currentPTOAccrualRate);
+			myHTML += '<p class="title">' + currentPTOUserName + "."  + '</p>'; 
+			myHTML += '<p class="holiday">' + "Floating Holidays: " + currentPTOFloats + "."  + '</p>'; 
+			myHTML += '<p class="holiday">' + "Paid Time Off Hours: " + currentPTOHours.toFixed(2) + "."  + '</p>'; 
+		}
+		$('#currentAccount').html(myHTML);
+	}
+	
+	
 	function updateUserAccountDisplay() {
 		var myCurrentUser = WAF.directory.currentUser(); // Get the current user
 		var myUser = WAF.ds.User.find("ID = " + myCurrentUser.ID, {
 			onSuccess: function(event) {
-				var theNumberOfElapsedPayPeriods = elapsedPayPeriods(event.entity);
+				//var theNumberOfElapsedPayPeriods = elapsedPayPeriods(event.entity);
+				var theNumberOfElapsedPayPeriods = elapsedPayPeriods(event.entity.ptoHours.getValue(), event.entity.ptoAccrualRate.getValue(), event.entity.ptoSeedDate.getValue());
 				var currentPTOHours = event.entity.ptoHours.getValue() + (theNumberOfElapsedPayPeriods * event.entity.ptoAccrualRate.getValue());
 				var myHTML = '';
+				myHTML += '<p class="title">' + event.entity.fullName.getValue() + "."  + '</p>'; 
 				myHTML += '<p class="holiday">' + "Floating Holidays: " + event.entity.floatingDays.getValue() + "."  + '</p>'; 
-				myHTML += '<p class="holiday">' + "Paid Time Off Hours: " + currentPTOHours + "."  + '</p>'; 
+				myHTML += '<p class="holiday">' + "Paid Time Off Hours: " + currentPTOHours.toFixed(2) + "."  + '</p>'; 
 				//myHTML += '<p class="holiday">' + "Manager: " + "Under Construction" + "."  + '</p>'; 
 				
-				$('#container6').html('User Account: <br/><br/>' + myHTML);
+				$('#myAccount').html(myHTML);
 			}
 		}); // Load their user entity.
 	}
 
 	function updateHolidayDisplay() {
-		ds.Holiday.all({orderBy:"date", onSuccess:function(event) {
+		var today = new Date();
+		//ds.Holiday.all({orderBy:"date", onSuccess:function(event) {
+		ds.Holiday.query("date > :1", today,
+			{orderBy:"date", onSuccess:function(event) {
 			event.entityCollection.toArray("name,date", {onSuccess: function(ev) {
 				var arr = ev.result;
 				var myHTML = '';
+				//myHTML += '<p class="title">' + 'Upcoming 4D Holidays: ' + '</p>';
 				arr.forEach(function(elem) { 
 					myHTML += '<p class="holiday">' + elem.name + " : " + formatDate(ISOToDate(elem.date)) + '</p>';
 				});
-				$('#container5').html('Upcoming 4D Holidays: ' + myHTML);
+				$('#holidaysContainer').html(myHTML);
 			}});
 		}});
 	}
@@ -275,8 +305,10 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 		}
 	}
 
-	function getNextWorkDay(textFieldIDSelector) {
-		var lastDayArray = $(textFieldIDSelector).val().split("/");
+	//function getNextWorkDay(textFieldIDSelector) {
+	function getNextWorkDay(dateString) {
+		//var lastDayArray = $(textFieldIDSelector).val().split("/");
+		var lastDayArray = dateString.split("/");
 		var yyyy = lastDayArray[2];
 		var mm = lastDayArray[0];
 		switch (mm) {
@@ -483,7 +515,7 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 			});
 			
 			//Closed PTOs.
-			waf.sources.pTO_Request1.query("status = :1", "closed");
+			//waf.sources.pTO_Request1.query("status = :1", "closed");
 			
 		} else {
 			$$("signInError").setValue("Invalid login.");
@@ -494,25 +526,23 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 		$$('emailMessageDialog').closeDialog(); 
 		savePTORequest($('#emailBody').val());
 	}
+	
+	function loadPTOs() {
+		WAF.sources.pTO_Request.query(
+			"status !== :1 order by firstDayOff", "closed",
+			{
+			onSuccess: function(event) {
+				disableInput();
+				createEmailAccordian();
+				currentPTOPrimaryKey = WAF.sources.pTO_Request.ID;
+			}
+		});
+	}
 
 //David Robbins Functions - End
 
 
 // eventHandlers// @lock
-
-	menuItem3.click = function menuItem3_click (event)// @startlock
-	{// @endlock
-		//Open PTOs
-		$('#container3').animate({ opacity: 1 }, 300);
-		$$("button9").enable();
-	};// @lock
-
-	menuItem4.click = function menuItem4_click (event)// @startlock
-	{// @endlock
-		//Closed PTOs tab
-		$('#container3').animate({ opacity: 0.2 }, 300);
-		$$("button9").disable();
-	};// @lock
 
 	button16.click = function button16_click (event)// @startlock
 	{// @endlock
@@ -521,7 +551,8 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 		
 		waf.sources.pTO_Request.removeCurrent({
 			onSuccess: function(event) {
-				
+				setMessageValue("Your PTO request has been deleted and your account updated.");
+				updateUserAccountDisplay();
 			},
 			onError: function(error) {
 				setMessageValue(error['error'][0].message + " (" + error['error'][0].errCode + ")", true);
@@ -576,12 +607,12 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 
 	dataGrid2.onRowClick = function dataGrid2_onRowClick (event)// @startlock
 	{// @endlock
-		currentPTOPrimaryKey = WAF.sources.pTO_Request.ID;
 		disableInput();
 		//$("#errorDiv1").html('');
 		setMessageValue("");
 		//$$('instuctionsRichText').setValue("");
 		createEmailAccordian();
+		displayCurrentAccount();
 	};// @lock
 
 	button12.click = function button12_click (event)// @startlock
@@ -641,7 +672,7 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 			WAF.sources.statusArray.sync();
 			//WAF.sources.pTO_Request.all();
 			WAF.sources.pTO_Request.setEntityCollection();
-			WAF.sources.pTO_Request1.setEntityCollection();
+			//WAF.sources.pTO_Request1.setEntityCollection();
 			
 			$('#calendarButton').hide();
 			$$("richText2").setValue("");
@@ -721,7 +752,10 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 						setMessageValue("PTO Request Saved.");
 					}
 				
-					WAF.sources.pTO_Request.addEntity(event.dataSource.getCurrentElement());
+					if (waf.sources.pTO_Request.getPosition() === -1) {
+						WAF.sources.pTO_Request.addEntity(event.dataSource.getCurrentElement());
+					}
+					
 					//WAF.sources.pTO_Request.selectByKey(primKey);
 					WAF.sources.pTO_Request.selectByKey(event.dataSource.ID);
 					currentPTOPrimaryKey = event.dataSource.ID;
@@ -810,7 +844,7 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 
 	button22.click = function button22_click (event)// @startlock
 	{// @endlock
-		$$('dialog3').sialog(); //cancel button
+		$$('dialog3').closeDialog(); //cancel button
 	};// @lock
 
 	button21.click = function button21_click (event)// @startlock
@@ -851,7 +885,7 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 		
 		if (WAF.directory.currentUser() === null) {
 			WAF.sources.pTO_Request.setEntityCollection();
-			WAF.sources.pTO_Request1.setEntityCollection();
+			//WAF.sources.pTO_Request1.setEntityCollection();
 			$$("richText2").setValue("");
 			//$$("container1").hide();
 			$("#container7").css("top", "80px");
@@ -861,7 +895,16 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 			//$$("signOutContainer").hide();
 			$('#calendarButton').hide();
 		} else {
+			console.log(WAF.directory.currentUser().fullName);
 			//We have a user signed in.
+			//Have Laurent look at this.
+			//WAF.sources.pTO_Request.setEntityCollection();
+			//WAF.sources.pTO_Request1.setEntityCollection();
+			//WAF.sources.pTO_Request.all();
+			//var id = setTimeout(loadPTOs, 700);
+			
+			loadPTOs();
+			/*
 			WAF.sources.pTO_Request.query(
 				"status !== :1 order by firstDayOff", "closed",
 				{
@@ -871,9 +914,10 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 					currentPTOPrimaryKey = WAF.sources.pTO_Request.ID;
 				}
 			});
-		
+			*/
+			
 			//Closed PTOs.
-			waf.sources.pTO_Request1.query("status = :1", "closed");
+			//waf.sources.pTO_Request1.query("status = :1", "closed");
 			
 			updateUserAccountDisplay();
 			updateHolidayDisplay();
@@ -889,15 +933,27 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 		
 		/**/
 		$("#textField3").change(function () { 
+			waf.sources.pTO_Request.lastDayOffString = waf.sources.pTO_Request.firstDayOffString;
+			waf.sources.pTO_Request.returnToWorkDateString = getNextWorkDay(waf.sources.pTO_Request.lastDayOffString);
+			waf.sources.pTO_Request.autoDispatch();
+			
+			
+			/*
 			WAF.sources.pTO_Request.lastDayOff = new Date($("#textField3").val());
 			WAF.sources.pTO_Request.autoDispatch();
 			WAF.sources.pTO_Request.returnToWorkDate = new Date(getNextWorkDay("#textField4"));
 			WAF.sources.pTO_Request.autoDispatch();
+			*/
 		}); 
 		
 		$("#textField4").change(function () { 
+			waf.sources.pTO_Request.returnToWorkDateString = getNextWorkDay(waf.sources.pTO_Request.lastDayOffString);
+			waf.sources.pTO_Request.autoDispatch();
+			
+			/*
 			WAF.sources.pTO_Request.returnToWorkDate = new Date(getNextWorkDay("#textField4"));
 			WAF.sources.pTO_Request.autoDispatch();
+			*/
 		}); 
 		
 		$('#textField1, #textField2').live('keyup', function (e) {
@@ -933,12 +989,12 @@ var myCurrentDate = mm+'/'+dd+'/'+yyyy;
 		var inputWidth = $('#combobox1 input').css('width');
 		$('#combobox1 input').css('width', "-=2");
 		
+		$( "#textField3" ).datepicker();
+		$( "#textField4" ).datepicker();
 	
 	};// @lock
 
 // @region eventManager// @startlock
-	WAF.addListener("menuItem3", "click", menuItem3.click, "WAF");
-	WAF.addListener("menuItem4", "click", menuItem4.click, "WAF");
 	WAF.addListener("button16", "click", button16.click, "WAF");
 	WAF.addListener("button15", "click", button15.click, "WAF");
 	WAF.addListener("button2", "click", button2.click, "WAF");

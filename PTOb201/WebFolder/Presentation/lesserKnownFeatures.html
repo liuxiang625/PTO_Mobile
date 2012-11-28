@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html><html>
+    <head>
+        <title>Wakanda - Lesser Known Features</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <meta name="generator" content="Wakanda GUIDesigner"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+    	<meta name="wakanda-version" content="Dev build 0.118752"/>
+		<meta name="wakanda-build" content="0.118752"/>		
+		
+		<meta name="WAF.config.loadJS" content="/Presentation/revealJS/lib/js/head.min.js"/>
+		<meta name="WAF.config.loadJS" content="/Presentation/revealJS/js/reveal.min.js"/>
+		<meta name="WAF.config.loadJS" content="/Presentation/scripts/slideDeck.js"/>
+		<meta name="WAF.config.loadJS" content="/Presentation/revealJS/lib/js/highlight.js"/>
+		<meta name="WAF.config.loadJS" content="/Presentation/highlight/highlight.pack.js"/>
+		
+		<meta name="WAF.config.loadCSS" id="waf-palette" content="/walib/WAF/widget/palette/css/widget-palette-default.css"/>
+		<meta name="WAF.config.loadCSS" content="/Presentation/revealJS/css/main.css"/>
+		<meta name="WAF.config.loadCSS" content="/Presentation/revealJS/css/theme/beige.css"/>
+		<meta name="WAF.config.loadCSS" content="/Presentation/highlight/styles/zenburn.css"/>
+		<meta name="WAF.config.loadCSS" content="/Presentation/styles/custom.css"/>
+		<meta name="WAF.config.loadCSS" content="/application.css"/>
+		<meta name="WAF.config.loadCSS" id="waf-interface-css" content="styles/firstBusinessApp.css"/>
+		<meta id="waf-project-css" name="WAF.config.loadCSS" content="/application.css"/>
+</head>
+<body id="waf-body" data-viewport-width="device-width" data-viewport-minimum-scale="1.0" data-viewport-maximum-scale="1.0" data-viewport-initial-scale="1.0" data-type="document" data-theme="default" data-platform="desktop" data-lib="WAF" data-apple-meta-tags-status-bar="default" class="default" style="visibility:hidden;">
+	
+<div class="reveal">
+<!-- Used to fade in a background when a specific slide state is reached -->
+<div class="state-background"></div>
+
+<div class="slides">
+
+<section>
+<h2>Wakanda Lesser Know Features</h2>
+<br/>
+<br/>
+<div class="davequote">
+<p>Having a well rounded toolchest is the best way to tackle more advanced problems.</p>
+<p>Learn about features like Workers, Mail, Storage Objects, Mutex and HTTP Request Handlers.</p>
+</div>
+<p id="author">
+	<span class="green">dave@wakanda.org</span> and <span class="green">greg@homeslondon.com</span>
+	<br/>
+	October 28th, 2012
+</p>
+</section>
+
+<section>
+	<h2>Workers</h2>
+	<br/>
+	
+	<section>
+	<p class="daveParagraph">Wakanda Server uses <span class="wakandaKeyword">Web Workers</span> to provide you with JavaScript multithreading capabilities.</p>
+	<p class="daveParagraph">A Web Worker is created by referencing an individual JavaScript file.</p>
+	<p class="daveParagraph">When the worker is instantiated, it then becomes an object residing in memory waiting to be called.</p>
+	</section>
+
+	<section>
+		<p class="daveParagraph">There are two types of <span class="wakandaKeyword">Web Workers</span>:</p>
+
+		<p class="daveParagraph fragment"><strong>Dedicated workers</strong> have one parent and can only communicate with their parent or the workers they spawn. Dedicated workers terminate when the parent thread ends.</p>
+		<p class="daveParagraph fragment"><strong>Shared workers</strong> can be shared among several callers. They don't have a specific parent. Shared workers can continue to exist even after the their spawning parent thread ends.</p>
+	</section>
+
+	
+	<section><!--
+	<p class="daveParagraph">Here is a basic outline of a <span class="wakandaKeyword">Shared Worker</span>:</p>
+	-->
+	<h3>sharedWorkers/emailDaemon.js</h3>
+<pre><code>function onconnect(msg) {
+  //This function is automatically called whenever another thread
+  // acquires a reference to the shared worker.
+  
+  <span class="fragment">var thePort = msg.ports[0]; //Shared worker communication port</span>
+
+  <span class="fragment">//This method will be called when the parent thread posts 
+  // messages to this shared worker.
+  thePort.onmessage = function(messageEvt) {
+    <span class="fragment">var message = messageEvt.data;</span>
+    
+    <span class="fragment">switch(message.what)  {
+      case 'htmlEmailTest':
+      ... send email ...
+      break;
+    }//end switch</span>
+  }//end onmessage callback</span>
+}//end onconnect</code></pre>
+	</section>
+
+	<section>
+	<h3>Calling our Shared Worker:</h3>
+<pre><code>var theEmailWorker = new SharedWorker("sharedWorkers/emailDaemon.js", "emailDaemon");
+
+var thePort = theEmailWorker.port;
+
+thePort.postMessage({what: 'htmlEmailTest'});</code></pre>
+	</section>
+</section>
+
+<section>
+	<h2>HTTP Request Handlers</h2>
+	<br/>
+
+	<section>
+	<p class="daveParagraph">With Wakanda, you can call a server-side JavaScript function by sending an HTTP request that fits a specific pattern (JavaScript regex).</p>
+	<br/>
+	<p class="daveParagraph fragment">Unlike server-side JavaScript functions that are called using RPC services, <span class="wakandaKeyword">code executed using an HTTP request handler does not require the WAF library to be initialized</span> or loaded on the client. The only requirement is for the request to be properly formatted. This means that it is particularly suited for creating "services" on the Wakanda server, giving HTTP clients access to the Web site data.</p>
+	</section>
+
+	<section>
+	<br/>
+	<h3>startUp.js <span class="subTitleColor">(set as active bootstrap)</span></h3>
+<pre><code>addHttpRequestHandler('/echo', 'requestHandlers.js', 'echo');</code></pre>
+	<br/>
+	<br/>
+	<br/>
+	<h3>requestHandlers.js</h3>
+<pre><code>function echo(request, response) {
+  response.contentType = 'application/json';
+  return JSON.stringify(request);
+}</code></pre>
+	</section>
+
+	<section>
+	<img src="/Presentation/img/httpRequestHandler.png"/>
+	</section>
+
+</section>
+
+
+
+</div>	<!--end div class slides-->
+
+<!-- The navigational controls UI -->
+
+<aside class="controls">
+	<a href="#" class="left">◄</a>
+    <a href="#" class="right">►</a>
+   	<a href="#" class="up">▲</a>
+    <a href="#" class="down">▼</a>
+</aside>
+
+
+<!-- Presentation progress bar -->
+<div class="progress"><span></span></div>
+     
+
+</div>	<!--end div class reveal-->
+<div id="footer"><p>Wakanday 2012</p></div>
+		<script type="text/javascript" src="/waLib/WAF/Loader.js"></script>
+</body>
+</html>

@@ -4,38 +4,37 @@
 
 */
 
-//HTTP Request Handler
-//addHttpRequestHandler('/testEcho', 'requestHandlers.js', 'echoHandler');
-//addHttpRequestHandler('/calendarData', 'requestHandlers.js', 'fullCalendarDispatcher');
+
+//Lesser Known Features of Wakanda
+//http request handlers
+//addHttpRequestHandler('^/echo$', 'requestHandlers.js', 'echo'); //Pattern matches "echo" only.
+addHttpRequestHandler('/echo', 'requestHandlers.js', 'echo'); //Matches any request containing echo.
+
+
 addHttpRequestHandler('/ptoApproval', 'requestHandlers.js', 'ptoApproval');
-
-
 directory.setLoginListener("ptoLogin");
 
-//var theEmailWorker = new SharedWorker("sharedWorkers/emailDaemon.js", "emailDaemon");
-
+/*
 if (loginByPassword("admin", "admin")) {
 	//Seed Users
 	var userCollection = ds.User.all();
 	try 
 	{
-		/**/
 		userCollection.remove();
 		
-		var payrollManager = new ds.User({login: "smichaels", password: "michaels", fullName: "Sandra Michaels", email: "dave@wakanda.org", role: "Payroll", myManager: generalManager, accessLevel: 5, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
-		payrollManager.save();
-
-		var generalManager = new ds.User({login: "tmiller", password: "miller", fullName: "Tom Miller", email: "dave@wakanda.org", role: "Manager", myManager: payrollManager, accessLevel: 3, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
+		var generalManager = new ds.User({login: "tmiller", password: "miller", fullName: "Tom Miller", email: "dave@wakanda.org", role: "Manager", myManager: payrollManager, ptoAccrualRate: 20, accessLevel: 3, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
 		generalManager.save();
 		
+		var payrollManager = new ds.User({login: "smichaels", password: "michaels", fullName: "Sandra Michaels", email: "dave@wakanda.org", role: "Payroll", myManager: generalManager, ptoAccrualRate: 20, accessLevel: 5, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
+		payrollManager.save();
 		
-		var salesManager = new ds.User({login: "troberts", password: "roberts", fullName: "Tracy Roberts", email: "dave@wakanda.org", role: "Manager", myManager: generalManager, accessLevel: 5, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
+		var salesManager = new ds.User({login: "troberts", password: "roberts", fullName: "Tracey Roberts", email: "dave@wakanda.org", role: "Manager", myManager: generalManager, ptoAccrualRate: 20, accessLevel: 5, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
 		salesManager.save();
 		
-		var marketingManager = new ds.User({login: "mgerin", password: "gerin", fullName: "Michel Gerin", email: "dave@wakanda.org", role: "Manager", myManager: payrollManager, accessLevel: 3, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
+		var marketingManager = new ds.User({login: "mgerin", password: "gerin", fullName: "Michel Gerin", email: "dave@wakanda.org", role: "Manager", myManager: payrollManager, ptoAccrualRate: 20, accessLevel: 3, ptoHours: 120, floatingDays: 5, ptoSeedDate: new Date()});
 		marketingManager.save();
 		
-		var techServicesManager = new ds.User({login: "addk", password: "komoncharoensiri", fullName: "Add Komoncharoensiri", email: "dave@wakanda.org", role: "Manager", myManager: generalManager, accessLevel: 3, ptoHours: 80, floatingDays: 5, ptoSeedDate: new Date()});
+		var techServicesManager = new ds.User({login: "addk", password: "komoncharoensiri", fullName: "Add Komoncharoensiri", email: "dave@wakanda.org", role: "Manager", myManager: generalManager, ptoAccrualRate: 20, accessLevel: 3, ptoHours: 80, floatingDays: 5, ptoSeedDate: new Date()});
 		techServicesManager.save();
 		
 		//Staff
@@ -300,7 +299,6 @@ if (loginByPassword("admin", "admin")) {
 	var someHolidays = ds.Holiday.all();
 	try 
 	{
-		/**/
 		someHolidays.remove();
 		new ds.Holiday({name: "New Years Day", date: new Date("January 02, 2012")}).save();
 		new ds.Holiday({name: "President's Day", date: new Date("February 20, 2012")}).save();
@@ -327,7 +325,6 @@ if (loginByPassword("admin", "admin")) {
 	var requestLineItemCollection = ds.RequestLineItem.all();
 	try 
 	{
-		/**/
 		requestLineItemCollection.remove();
 		
 	}
@@ -349,7 +346,6 @@ if (loginByPassword("admin", "admin")) {
 	var ptoCollection = ds.PTO_Request.all();
 	try 
 	{
-		/**/
 		ptoCollection.remove();
 		
 	}
@@ -370,7 +366,6 @@ if (loginByPassword("admin", "admin")) {
 	var noteCollection = ds.Note.all();
 	try 
 	{
-		/**/
 		noteCollection.remove();
 		
 	}
@@ -388,3 +383,4 @@ if (loginByPassword("admin", "admin")) {
 	}
 
 }
+*/
