@@ -294,7 +294,7 @@ if (loginByPassword("admin", "admin")) {
 			sourceURL: err.sourceURL
 		}).save();
 	}
-	
+
 	//Seed Holidays
 	var someHolidays = ds.Holiday.all();
 	try 

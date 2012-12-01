@@ -1,1 +1,1 @@
-﻿<?xml version="1.0" encoding="UTF-8"?><breakpoints/>
+﻿<?xml version="1.0" encoding="UTF-8"?><breakpoints><breakpoint path="./PTOb201/startUp.js" line="18" content="if (loginByPassword(&quot;admin&quot;, &quot;admin&quot;)) {"/><breakpoint path="./PTOb201/startUp.js" line="54" content="  rduarte.save();"/></breakpoints>
